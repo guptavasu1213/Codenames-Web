@@ -3,6 +3,11 @@ function attachCreateRoomListener (){
     createLink.addEventListener("click", onCreateRoomClick)
 }
 
+function attachJoinRoomListener(){
+    var joinLink = document.querySelector("#joinLink")
+    joinLink.addEventListener("click", OnJoinRoomClick)
+}
+
 function onCreateRoomClick() {
     var req = new XMLHttpRequest();
     req.onreadystatechange = function () {
@@ -64,14 +69,6 @@ function onCreateRoomClick() {
                 }, 200);  
             }
 
-
-
-
-
-
-
-
-
             document.querySelector("#hint").innerHTML = "Click on the room code to copy the link!<br>Then paste it to your friends!<br>Then click home and join the room!"
 
             document.querySelector("#createLink").style.display = "none"
@@ -79,13 +76,28 @@ function onCreateRoomClick() {
             document.querySelector("#rulesLink").style.display = "none"
 
             document.querySelector("#homeButton").innerHTML = '<a href="/"><img src="homebutton.png">'
-
-
         }
     }
     req.open("POST", "/api/v1/create");
     req.send();
-    
+}
+
+function OnJoinRoomClick(){
+    document.querySelector("#homeButton").innerHTML = '<a href="/"><img src="homebutton.png">'
+    document.querySelector("#createLink").style.display = "none"
+    document.querySelector("#joinLink").style.display = "none"
+    document.querySelector("#rulesLink").style.display = "none"
+    document.querySelector("#joinCode").innerHTML = '<input type="text" id="joinCodeBox" maxlength="6">'
+    document.querySelector("#joinCodeBox").focus()
+    document.querySelector("#join").innerHTML = "Join Room"
+    document.querySelector("#join").addEventListener("click", onJoinClick)
+
+    function onJoinClick(){
+        var roomCode = document.querySelector("#joinCodeBox").value
+        var loc = window.location;
+        loc.assign("/" + roomCode);
+    }
 }
 
 attachCreateRoomListener()
+attachJoinRoomListener()
