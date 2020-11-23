@@ -12,6 +12,8 @@ import (
 
 // Handler for serving HTML file for the home page
 func handlerToRetrieveHomePage(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./dist/index.html")
+
 }
 
 func randomHex(n int) (string, error) {
@@ -31,6 +33,8 @@ func handleCreateGame(w http.ResponseWriter, r *http.Request) {
 	createNewGame(redLink, blueLink, spyLink)
 
 	links := links{RedLink: redLink, BlueLink: blueLink, SpyLink: spyLink}
+
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(links)
 }
 
