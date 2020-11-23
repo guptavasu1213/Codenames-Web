@@ -8,6 +8,11 @@ function attachJoinRoomListener(){
     joinLink.addEventListener("click", OnJoinRoomClick)
 }
 
+function attachRulesListener(){
+    var rulesLink = document.querySelector("#rulesLink")
+    rulesLink.addEventListener("click", OnRulesClick)
+}
+
 function onCreateRoomClick() {
     var req = new XMLHttpRequest();
     req.onreadystatechange = function () {
@@ -99,5 +104,21 @@ function OnJoinRoomClick(){
     }
 }
 
+function OnRulesClick(){
+    document.querySelector("#homeButton").innerHTML = '<a href="/"><img src="homebutton.png">'
+    document.querySelector("#createLink").style.display = "none"
+    document.querySelector("#joinLink").style.display = "none"
+    document.querySelector("#rulesLink").style.display = "none"
+    document.querySelector("#rules").innerHTML = "Codenames is a game of guessing which codenames (i.e., words) in a set are related to a hint-word given by another player.<br><br>"
+    document.querySelector("#allRulesLink").innerHTML = "Click here for all Rules"
+    document.querySelector("#allRulesLink").addEventListener("click", onAllRulesClick)
+
+    function onAllRulesClick(){
+        var loc = window.location;
+        loc.assign("https://czechgames.com/files/rules/codenames-rules-en.pdf");
+    }
+}
+
 attachCreateRoomListener()
 attachJoinRoomListener()
+attachRulesListener()
