@@ -15,6 +15,12 @@ img{
     margin-right: auto 
 }
 
+input{
+    font-size:50px;
+    width: 300px;
+    text-align: center;
+}
+
 body {
 	background-color: black
 }
@@ -149,3 +155,19 @@ body {
     font-size: 25px;
 }
 
+#joinCode {
+    text-align: center;
+}
+
+#join {
+	font-family: linkFont;
+	text-align: center;
+    color: white;
+    font-size: 50px;
+}
+
+#join:hover {
+    cursor: pointer;
+    font-weight: 1000;
+    color: gray;
+}
