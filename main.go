@@ -55,7 +55,7 @@ func main() {
 	apiRouter := r.PathPrefix("/api/v1").Subrouter()
 
 	// API Endpoints
-	apiRouter.Path("/create").Methods("GET").HandlerFunc(handleCreateGame)
+	apiRouter.Path("/create").Methods("POST").HandlerFunc(handleCreateGame)
 	apiRouter.Path("/games/{game_id:[0-9a-zA-Z]{32}}").Methods("GET").HandlerFunc(handleJoinGame)
 
 	// Serve files

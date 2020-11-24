@@ -28,8 +28,6 @@ func handleCreateGame(w http.ResponseWriter, r *http.Request) {
 	blueLink, _ := randomHex(3)
 	spyLink, _ := randomHex(3)
 
-	createNewGame(redLink, blueLink, spyLink)
-
 	links := links{RedLink: redLink, BlueLink: blueLink, SpyLink: spyLink}
 	json.NewEncoder(w).Encode(links)
 }
