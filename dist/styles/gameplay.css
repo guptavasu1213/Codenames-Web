@@ -1,0 +1,28 @@
+body {
+	background-color: black
+}
+
+#gameplay {
+    display: flex;
+    justify-content: center;
+}
+
+table {
+    border-collapse: separate;
+    border-spacing: 20px;
+    align-self: center;
+    width: 1000px;
+
+}
+
+td {
+    background-color: white;
+    height: 100px;
+    text-align: center;
+    cursor: pointer;
+
+}
+
+
+
+
