@@ -12,7 +12,7 @@ import (
 
 // Handler for serving HTML file for the home page
 func handlerToRetrieveHomePage(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./dist/index.html")
+	http.ServeFile(w, r, "./dist/static/index.html")
 
 }
 
