@@ -1,4 +1,3 @@
-"use strict";
 function attachCreateRoomListener() {
     var createLink = document.querySelector("#createLink");
     createLink.addEventListener("click", onCreateRoomClick);

@@ -1,11 +1,11 @@
 @font-face {
     font-family: 'logoFont';
-    src: url('logoFont.woff');
+    src: url('../fonts/logoFont.woff');
 }
 
 @font-face {
     font-family: 'linkFont';
-    src: url('linkFont.woff');
+    src: url('../fonts/linkFont.woff');
 }
 
 img{
@@ -88,10 +88,10 @@ body {
 }
 
 #blueLink {
-	font-family: linkFont;
+	font-family: Arial, Helvetica, sans-serif;
 	text-align: center;
     color: white;
-    font-size: 50px;
+    font-size: 35px;
 }
 
 #blueLink:hover {
@@ -101,10 +101,10 @@ body {
 }
 
 #redLink {
-	font-family: linkFont;
+	font-family: Arial, Helvetica, sans-serif;
 	text-align: center;
     color: white;
-    font-size: 50px;
+    font-size: 35px;
 }
 
 #redLink:hover {
@@ -114,10 +114,10 @@ body {
 }
 
 #spyLink {
-	font-family: linkFont;
+	font-family: Arial, Helvetica, sans-serif;
 	text-align: center;
     color: white;
-    font-size: 50px;
+    font-size: 35px;
 }
 
 #spyLink:hover {
@@ -130,14 +130,14 @@ body {
 	font-family: linkFont;
 	text-align: center;
     color: white;
-    font-size: 50px;
+    font-size: 30px;
 }
 
 #redLinkText {
 	font-family: linkFont;
 	text-align: center;
     color: white;
-    font-size: 50px;
+    font-size: 30px;
 }
 
 
@@ -145,7 +145,7 @@ body {
 	font-family: linkFont;
 	text-align: center;
     color: white;
-    font-size: 50px;
+    font-size: 30px;
 }
 
 #hint {
@@ -157,6 +157,13 @@ body {
 
 #joinCode {
     text-align: center;
+}
+
+#joinText {
+	font-family: linkFont;
+	text-align: center;
+    color: white;
+    font-size: 30px;
 }
 
 #join {
@@ -180,10 +187,10 @@ body {
 }
 
 #allRulesLink {
-    font-family: linkFont;
+    font-family: Arial, Helvetica, sans-serif;
 	text-align: center;
     color: white;
-    font-size: 50px;
+    font-size: 40px;
 }
 
 #allRulesLink:hover {
