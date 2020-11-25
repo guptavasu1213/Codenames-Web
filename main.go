@@ -56,10 +56,11 @@ func main() {
 
 	// API Endpoints
 	apiRouter.Path("/create").Methods("POST").HandlerFunc(handleCreateGame)
-	apiRouter.Path("/games/{game_id:[0-9a-zA-Z]{32}}").Methods("GET").HandlerFunc(handleJoinGame)
+	apiRouter.Path("/games/{game_code:[0-9a-zA-Z]{32}}").Methods("GET").HandlerFunc(handleJoinGame)
+	apiRouter.Path("/games/{game_code:[0-9a-zA-Z]+").Methods("PUT").HandlerFunc(handleGameUpdates)
 
 	// Serve files
-	r.Path("/{game_id:[0-9a-zA-Z]{32}}").HandlerFunc(handleJoinPageServing)
+	r.Path("/{game_code:[0-9a-zA-Z]{32}}").HandlerFunc(handleJoinPageServing)
 	r.Path("/").HandlerFunc(handlerToRetrieveHomePage)
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("dist")))
 

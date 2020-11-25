@@ -2,15 +2,15 @@ package main
 
 import (
 	"bufio"
+	"database/sql"
 	"log"
 	"math/rand"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/mattn/go-sqlite3"
 )
-
-// Functions related to database queries
 
 func isUniqueViolation(err error) bool {
 	if err, ok := err.(sqlite3.Error); ok {
@@ -133,4 +133,106 @@ func createNewGame(redLink string, blueLink string, spyLink string) {
 			log.Fatalf("Cannot add to list %v", err)
 		}
 	}
+}
+
+// Retrieves the owner of the team code and game id
+func getGameInfo(w http.ResponseWriter, state *gameState) error {
+	query := `SELECT game_id, owner 
+						FROM Teams
+						WHERE team_code = $1`
+	err := db.Get(state, query, (*state).TeamCode)
+	if err == sql.ErrNoRows {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		log.Println("no Entries found")
+	} else if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		log.Println("unsuccessful data lookup:", err)
+	}
+	return err
+}
+
+// Gets card owner for the given game and card number
+func getCardOwner(w http.ResponseWriter, gameID int64, cardNumber int) (string, error) {
+	ownerName := ""
+
+	query := `SELECT owner
+						FROM Cards
+						WHERE game_id = $1 and card_number = $2`
+	err := db.Get(&ownerName, query, gameID, cardNumber)
+	if err == sql.ErrNoRows {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		log.Println("no Entries found")
+	} else if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		log.Println("unsuccessful data lookup")
+	}
+
+	return ownerName, err
+}
+
+// Set the visibility of the given card to true
+func makeSelectedCardVisible(w http.ResponseWriter, gameID int64, cardNumber int) error {
+	query := `UPDATE Cards 
+				SET visibility = 1 
+				WHERE game_id = $1 and card_number = $2`
+	_, err := db.Exec(query, gameID, cardNumber)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		log.Println("error: unsuccessful card visibility update")
+	} else {
+		log.Println("Card visibility updated successfully")
+	}
+
+	return err
+}
+
+// Increment the streak for the game
+func incrementStreak(w http.ResponseWriter, gameID int64) error {
+	query := `UPDATE Games 
+				SET streak = streak + 1 
+				WHERE game_id = $1`
+
+	_, err := db.Exec(query, gameID)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		log.Println("error: unsuccessful streak increment")
+	} else {
+		log.Println("Streak incremented successfully")
+	}
+
+	return err
+}
+
+// Set streak to zero and switch the turn to other team
+func removeStreakAndSwitchTurn(w http.ResponseWriter, gameID int64, oppositeTeam string) error {
+	query := `UPDATE Games 
+				SET streak = 0, current_turn = $1
+				WHERE game_id = $2`
+
+	_, err := db.Exec(query, oppositeTeam, gameID)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		log.Println("error: unsuccessful streak removal and turn switching")
+	} else {
+		log.Println("Removed streak and switched turn successfully")
+	}
+
+	return err
+}
+
+// Decrement the remaining card count for the given team
+func decrementRemainingCardCount(w http.ResponseWriter, gameID int64, teamName string) error {
+	query := `UPDATE Teams 
+				SET cards_remaining = cards_remaining - 1 
+				WHERE game_id = $1 and owner = $2`
+
+	_, err := db.Exec(query, gameID, teamName)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		log.Println("error: unsuccessful card count decrement")
+	} else {
+		log.Println("Card count decremented successfully")
+	}
+
+	return err
 }
