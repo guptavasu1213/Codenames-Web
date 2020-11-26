@@ -212,8 +212,8 @@ func handleGameUpdates(w http.ResponseWriter, r *http.Request) {
 // Handler for joining the game
 func handleJoinPageServing(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game_code"]
-
 	fmt.Println(gameID)
+	http.ServeFile(w, r, "./dist/static/gameplay.html")
 
 	// Check who the owner of the link is
 }
