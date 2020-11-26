@@ -13,7 +13,7 @@ import (
 
 // Handler for serving HTML file for the home page
 func handlerToRetrieveHomePage(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./dist/static/index.html")
+	http.ServeFile(w, r, "./dist/static/menu.html")
 
 }
 
@@ -212,6 +212,8 @@ func handleJoinPageServing(w http.ResponseWriter, r *http.Request) {
 	gameID := mux.Vars(r)["game_code"]
 
 	fmt.Println(gameID)
+
+	http.ServeFile(w, r, "./dist/static/gameplay.html")
 
 	// Check who the owner of the link is
 }
