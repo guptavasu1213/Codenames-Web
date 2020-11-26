@@ -1,25 +1,69 @@
+@font-face {
+    font-family: 'logoFont';
+    src: url('../fonts/logoFont.woff');
+}
+
+#logoText {
+	align-content: center;
+	text-align: center ;
+	font-family: logoFont;
+	color: white;
+	font-size: 50px;
+}
+
+#homeButton {
+    height: 50px;
+    padding-top: 20px;
+    padding-right: 20px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+}
+
+
 body {
 	background-color: black
 }
 
 #gameplay {
-    display: flex;
-    justify-content: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
-table {
+#gamestat {
+        align-self: center;
+        width: 900px;
+        table-layout: fixed;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 20px;
+        margin-left: auto;
+        margin-right: auto;
+}
+
+#gamestat td {
+    color: white;
+    text-align: center;
+}
+
+#gameboard {
     border-collapse: separate;
     border-spacing: 20px;
     align-self: center;
-    width: 1000px;
+    max-width: 1000px;
+    /* table-layout: fixed; */
+    font-family: "logoFont";
+    /* margin-left: auto;
+    margin-right: auto; */
 
 }
 
-td {
+#gameboard td {
     background-color: white;
     height: 100px;
     text-align: center;
     cursor: pointer;
+    width: 10%;
 
 }
 

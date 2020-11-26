@@ -1,91 +1,194 @@
-// function btnClick() {
-//     var x = document.getElementById("mytable").getElementsByTagName("td");
-//     x[0].innerHTML = "i want to change my cell color";
-//     x[0].style.backgroundColor = "yellow";            
+document.querySelector("#homeButton").innerHTML = '<a href="/"><img src="../images/homebutton.png">';
+
+var gameStat = document.querySelector("#gamestat").querySelectorAll("td")
+var gameBoard = document.querySelector("#gameboard").querySelectorAll("td")
+
+
+// var req = new XMLHttpRequest();
+// req.open("GET", "/api/v1/games" + gameId);
+// req.send();
+// req.onreadystatechange = function () {
+//     if (req.readyState == XMLHttpRequest.DONE && req.status == 200) {
+//         var gameState = JSON.parse(req.response);
+
+//         var i;
+//         for (i = 0; i < gameState.CardsName.length; i++) {
+//             console.log(gameState.CardsName[i])
+//             gameBoard[i].innerHTML = gameState.CardsName[i]
+//         }
+//     }
 // }
 
+var gameState = {
+    "hasEnded": false,
+    "redCardsRemaining": 9,
+    "blueCardsRemaining": 9,
+    "turn": "Blue",
+    "streak": 0,
+    "cards": [
+        {
+            "label": "log",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "model",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "mole",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "europe",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "jet",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "film",
+            "visible": true,
+            "owner": "Bystander"
+        },
+        {
+            "label": "amazon",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "slip",
+            "visible": true,
+            "owner": "Red"
+        },
+        {
+            "label": "ham",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "club",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "jam",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "trip",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "tower",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "part",
+            "visible": true,
+            "owner": "Assassin"
+        },
+        {
+            "label": "new york",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "orange",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "gold",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "canada",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "beach",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "air",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "dice",
+            "visible": true,
+            "owner": "Blue"
+        },
+        {
+            "label": "park",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "revolution",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "knight",
+            "visible": false,
+            "owner": "N/A"
+        },
+        {
+            "label": "dinosaur",
+            "visible": false,
+            "owner": "N/A"
+        }
+    ]
+}
 
-var 
-gameBoard = document.querySelector("#gameboard").querySelectorAll("td")
-box1 = gameBoard[0], box2 = gameBoard[1], box3 = gameBoard[2], box4 = gameBoard[3], box5 = gameBoard[4], 
-box6 = gameBoard[5], box7 = gameBoard[6], box8 = gameBoard[7], box9 = gameBoard[8], box10 = gameBoard[9],
-box11 = gameBoard[10], box12 = gameBoard[11], box13 = gameBoard[12], box14 = gameBoard[13], box15 = gameBoard[14],
-box16 = gameBoard[15], box17 = gameBoard[16], box18 = gameBoard[17], box19 = gameBoard[18],box20 = gameBoard[19],
-box21 = gameBoard[20], box22 = gameBoard[21], box23 = gameBoard[22], box24 = gameBoard[23],box25 = gameBoard[24]
+// setting game stats are the top of the gameboard
+gameStat[0].innerHTML = "<b>Blue</b> - " + gameState["blueCardsRemaining"]
+gameStat[1].innerHTML = "<h2>" + gameState["turn"] + "'s Turn </h2>"
+gameStat[2].innerHTML = "<b>Red</b> - " + gameState["redCardsRemaining"]
 
-box1.addEventListener("click", onBox1Click);
-box2.addEventListener("click", onBox2Click);
-box3.addEventListener("click", onBox3Click);
-box4.addEventListener("click", onBox4Click);
-box5.addEventListener("click", onBox5Click);
-box6.addEventListener("click", onBox6Click);
-box7.addEventListener("click", onBox7Click);
-box8.addEventListener("click", onBox8Click);
-box9.addEventListener("click", onBox9Click);
-box10.addEventListener("click", onBox10Click);
-box11.addEventListener("click", onBox11Click);
-box12.addEventListener("click", onBox12Click);
-box13.addEventListener("click", onBox13Click);
-box14.addEventListener("click", onBox14Click);
-box15.addEventListener("click", onBox15Click);
-box16.addEventListener("click", onBox16Click);
-box17.addEventListener("click", onBox17Click);
-box18.addEventListener("click", onBox18Click);
-box19.addEventListener("click", onBox19Click);
-box20.addEventListener("click", onBox20Click);
-box21.addEventListener("click", onBox21Click);
-box22.addEventListener("click", onBox22Click);
-box23.addEventListener("click", onBox23Click);
-box24.addEventListener("click", onBox24Click);
-box25.addEventListener("click", onBox25Click);
 
-function onBox1Click(){
+// inserting card information
+var i;
+for (i = 0; i < gameState["cards"].length; i++) {
+    gameBoard[i].innerHTML = gameState["cards"][i]["label"] // adding card label
+    if (gameState["cards"][i]["visible"]) {
+        switch (gameState["cards"][i]["owner"]) {
+            case "Blue":
+                gameBoard[i].style.backgroundColor = "Blue"
+                gameBoard[i].style.fontWeight = "Bold"
+                break;
+            case "Red":
+                gameBoard[i].style.backgroundColor = "Red"
+                gameBoard[i].style.fontWeight = "Bold"
+                break;
+            case "Bystander":
+                gameBoard[i].style.backgroundColor = "Gray"
+                gameBoard[i].style.fontWeight = "Bold"
+                break;
+            case "Assassin":
+                gameBoard[i].style.backgroundColor = "Brown"
+                gameBoard[i].style.fontWeight = "Bold"
+                break;
+        }
+    }
 }
-function onBox2Click(){
-}
-function onBox3Click(){
-}
-function onBox4Click(){
-}
-function onBox5Click(){
-}
-function onBox6Click(){
-}
-function onBox7Click(){
-}
-function onBox8Click(){
-}
-function onBox9Click(){
-}
-function onBox10Click(){
-}
-function onBox11Click(){
-}
-function onBox12Click(){
-}
-function onBox13Click(){
-}
-function onBox14Click(){
-}
-function onBox15Click(){
-}
-function onBox16Click(){
-}
-function onBox17Click(){
-}
-function onBox18Click(){
-}
-function onBox19Click(){
-}
-function onBox20Click(){
-}
-function onBox21Click(){
-}
-function onBox22Click(){
-}
-function onBox23Click(){
-}
-function onBox24Click(){
-}
-function onBox25Click(){
-}
+
+
+
+
+
+
+
