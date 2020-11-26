@@ -1,0 +1,201 @@
+@font-face {
+    font-family: 'logoFont';
+    src: url('../fonts/logoFont.woff');
+}
+
+@font-face {
+    font-family: 'linkFont';
+    src: url('../fonts/linkFont.woff');
+}
+
+img{
+    max-width: 100%;
+    max-height: 100%;
+    margin-left: auto;
+    margin-right: auto 
+}
+
+input{
+    font-size:50px;
+    width: 300px;
+    text-align: center;
+}
+
+body {
+	background-color: black
+}
+
+#homeButton {
+    height: 50px;
+    padding-top: 20px;
+    padding-right: 20px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+}
+
+#menu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#logoText {
+	align-content: center;
+	text-align: center ;
+	font-family: logoFont;
+	color: white;
+	font-size: 100px;
+}
+
+#createLink {
+	font-family: linkFont;
+	text-align: center;
+    color: white;
+    font-size: 50px;
+}
+
+#createLink:hover {
+    cursor: pointer;
+    font-weight: 1000;
+    color: gray;
+}
+
+#joinLink {
+	font-family: linkFont;
+	text-align: center;
+    color: white;
+    font-size: 50px;
+}
+
+#joinLink:hover {
+    cursor: pointer;
+    font-weight: 1000;
+    color: gray;
+}
+
+#rulesLink {
+	font-family: linkFont;
+	text-align: center;
+    color: white;
+    font-size: 50px;
+}
+
+#rulesLink:hover {
+    cursor: pointer;
+    font-weight: 1000;
+    color: gray;
+}
+
+#blueLink {
+	font-family: Arial, Helvetica, sans-serif;
+	text-align: center;
+    color: white;
+    font-size: 35px;
+}
+
+#blueLink:hover {
+    cursor: pointer;
+    font-weight: 1000;
+    color: gray;
+}
+
+#redLink {
+	font-family: Arial, Helvetica, sans-serif;
+	text-align: center;
+    color: white;
+    font-size: 35px;
+}
+
+#redLink:hover {
+    cursor: pointer;
+    font-weight: 1000;
+    color: gray;
+}
+
+#spyLink {
+	font-family: Arial, Helvetica, sans-serif;
+	text-align: center;
+    color: white;
+    font-size: 35px;
+}
+
+#spyLink:hover {
+    cursor: pointer;
+    font-weight: 1000;
+    color: gray;
+}
+
+#blueLinkText {
+	font-family: linkFont;
+	text-align: center;
+    color: white;
+    font-size: 30px;
+}
+
+#redLinkText {
+	font-family: linkFont;
+	text-align: center;
+    color: white;
+    font-size: 30px;
+}
+
+
+#spyLinkText {
+	font-family: linkFont;
+	text-align: center;
+    color: white;
+    font-size: 30px;
+}
+
+#hint {
+	font-family: linkFont;
+	text-align: center;
+    color: white;
+    font-size: 25px;
+}
+
+#joinCode {
+    text-align: center;
+}
+
+#joinText {
+	font-family: linkFont;
+	text-align: center;
+    color: white;
+    font-size: 30px;
+}
+
+#join {
+	font-family: linkFont;
+	text-align: center;
+    color: white;
+    font-size: 50px;
+}
+
+#join:hover {
+    cursor: pointer;
+    font-weight: 1000;
+    color: gray;
+}
+
+#rules {
+    font-family: linkFont;
+	text-align: center;
+    color: white;
+    font-size: 40px;
+}
+
+#allRulesLink {
+    font-family: Arial, Helvetica, sans-serif;
+	text-align: center;
+    color: white;
+    font-size: 40px;
+}
+
+#allRulesLink:hover {
+    cursor: pointer;
+    font-weight: 1000;
+    color: gray;
+}
+
