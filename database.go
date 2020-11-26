@@ -73,7 +73,7 @@ func createCardList(numb int) []string {
 		cardList = append(cardList, "Bystander")
 	}
 
-	cardList = append(cardList, "Assasin")
+	cardList = append(cardList, "Assassin")
 	rand.Shuffle(len(cardList), func(i, j int) {
 		cardList[i], cardList[j] = cardList[j], cardList[i]
 	})
@@ -232,6 +232,58 @@ func decrementRemainingCardCount(w http.ResponseWriter, gameID int64, teamName s
 		log.Println("error: unsuccessful card count decrement")
 	} else {
 		log.Println("Card count decremented successfully")
+	}
+
+	return err
+}
+
+// Get remaining cards for the team
+func getRemainingCardNum(w http.ResponseWriter, gameID int64, teamName string) (int, error) {
+	var remainingCards int
+	query := `SELECT cards_remaining 
+				FROM Teams
+				WHERE game_id = $1 and owner = $2`
+	err := db.Get(&remainingCards, query, gameID, teamName)
+	if err == sql.ErrNoRows {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		log.Println("no Entries found")
+	} else if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		log.Println("error: unsuccessful retrieval of remaining card count")
+	}
+
+	return remainingCards, err
+}
+
+// Get the turn and the streak for the game
+func getTurnAndStreak(w http.ResponseWriter, state *gameState) error {
+	query := `SELECT current_turn, streak 
+				FROM Games
+				WHERE game_id = $1`
+	err := db.Get(state, query, (*state).GameID)
+	if err == sql.ErrNoRows {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		log.Println("no Entries found")
+	} else if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		log.Println("error: unsuccessful retrieval of turn and streak")
+	}
+
+	return err
+}
+
+// Get card information including the labels, owner and visibility
+func getCardInfo(w http.ResponseWriter, state *gameState) error {
+	query := `SELECT label, owner, visibility 
+				FROM Cards
+				WHERE game_id = $1`
+	err := db.Select(&(*state).Cards, query, (*state).GameID)
+	if err == sql.ErrNoRows {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		log.Println("no Entries found")
+	} else if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		log.Println("error: unsuccessful retrieval of remaining card info", err)
 	}
 
 	return err

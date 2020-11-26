@@ -51,7 +51,7 @@ func handleJoinGame(w http.ResponseWriter, r *http.Request) {
 // Retrieve selected card number for the game from the JSON
 func getUserSelectionFromJSON(w http.ResponseWriter, r *http.Request) (int, error) {
 	type selection struct {
-		CardNumber int `json:"card_clicked_number"`
+		CardNumber int `json:"cardClickedNumber"`
 	}
 	userSelection := selection{}
 
@@ -64,17 +64,17 @@ func getUserSelectionFromJSON(w http.ResponseWriter, r *http.Request) (int, erro
 }
 
 // Updates the logistics of the game based on the current and opposite team info
-func updateGameForTeam(w http.ResponseWriter, r *http.Request, currentTeam string, oppositeTeam string, state *gameState) {
+func updateGameForTeam(w http.ResponseWriter, r *http.Request, currentTeam string, oppositeTeam string, state *gameState) error {
 	selectedCardNum, err := getUserSelectionFromJSON(w, r)
 	if err != nil {
-		return
+		return err
 	}
 
 	// Get the real owner of the card clicked by the user
 	var cardOwner string
 	cardOwner, err = getCardOwner(w, (*state).GameID, selectedCardNum)
 	if err != nil {
-		return
+		return err
 	}
 
 	makeSelectedCardVisible(w, (*state).GameID, selectedCardNum)
@@ -93,7 +93,7 @@ func updateGameForTeam(w http.ResponseWriter, r *http.Request, currentTeam strin
 		// Set streak to zero and switch the turn to other team
 		err = removeStreakAndSwitchTurn(w, (*state).GameID, oppositeTeam)
 		if err != nil {
-			return
+			return err
 		}
 	} else if cardOwner == currentTeam {
 		log.Println("Selected Own Card")
@@ -101,13 +101,13 @@ func updateGameForTeam(w http.ResponseWriter, r *http.Request, currentTeam strin
 		// Increment streak
 		err = incrementStreak(w, (*state).GameID)
 		if err != nil {
-			return
+			return err
 		}
 
 		// Decrease the remaining cards
 		decrementRemainingCardCount(w, (*state).GameID, currentTeam)
 		if err != nil {
-			return
+			return err
 		}
 
 	} else {
@@ -116,15 +116,52 @@ func updateGameForTeam(w http.ResponseWriter, r *http.Request, currentTeam strin
 		// Set streak to zero and switch the turn to other team
 		err = removeStreakAndSwitchTurn(w, (*state).GameID, oppositeTeam)
 		if err != nil {
-			return
+			return err
 		}
 
 		// Decrease the remaining cards
 		decrementRemainingCardCount(w, (*state).GameID, oppositeTeam)
 		if err != nil {
-			return
+			return err
 		}
 	}
+	return nil
+}
+
+// Generate game state by retrieving values from the database
+func generateGameState(w http.ResponseWriter, state *gameState) error {
+	// Get remaining cards for both teams
+	var err error
+	(*state).RedCardsRemaining, err = getRemainingCardNum(w, (*state).GameID, "Red")
+	if err != nil {
+		return err
+	}
+	(*state).BlueCardsRemaining, err = getRemainingCardNum(w, (*state).GameID, "Blue")
+	if err != nil {
+		return err
+	}
+
+	// Get the turn and streak
+	err = getTurnAndStreak(w, state)
+	if err != nil {
+		return err
+	}
+
+	// Get the card info
+	getCardInfo(w, state)
+	if err != nil {
+		return err
+	}
+
+	// Obfuscate the owner names if the spymaster is
+	if (*state).Owner != "Spymaster" {
+		for i, card := range state.Cards {
+			if !card.Visible {
+				state.Cards[i].Owner = "N/A"
+			}
+		}
+	}
+	return nil
 }
 
 // Handler for the Endpoint for Game Updates
@@ -139,19 +176,35 @@ func handleGameUpdates(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check game code owners
 	if state.Owner == "Spymaster" {
 		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		log.Println("error: spymasters cannot select cards")
+		return
 	} else if state.Owner == "Red" {
-		updateGameForTeam(w, r, "Red", "Blue", &state)
+		err = updateGameForTeam(w, r, "Red", "Blue", &state)
 
 	} else { // Blue
-		updateGameForTeam(w, r, "Blue", "Red", &state)
+		err = updateGameForTeam(w, r, "Blue", "Red", &state)
+	}
+	if err != nil {
+		return
 	}
 
-	// Update all clients with the game state
-	// Get game state
-	// Send it over
+	// Generate game state from the DB
+	err = generateGameState(w, &state)
+	if err != nil {
+		return
+	}
+
+	// Send JSON to the client
+	w.Header().Set("Content-Type", "application/json")
+
+	err = json.NewEncoder(w).Encode(state)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		log.Println("error: encoding unsuccessful")
+	}
 }
 
 // Handler for joining the game
