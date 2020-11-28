@@ -59,6 +59,7 @@ func main() {
 
 	apiRouter.Path("/games/{game_code:[0-9a-zA-Z]+}").Methods("GET").HandlerFunc(handleJoinGame)
 	// apiRouter.Path("/games/{game_code:[0-9a-zA-Z]+}").Methods("PUT").HandlerFunc(handleGameUpdates)
+
 	// Serve files
 	r.Path("/{game_code:[0-9a-zA-Z]{6}}").HandlerFunc(handleJoinPageServing)
 	r.Path("/").HandlerFunc(handlerToRetrieveHomePage)
