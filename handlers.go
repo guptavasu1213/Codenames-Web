@@ -4,11 +4,13 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
 // Handler for serving HTML file for the home page
@@ -39,53 +41,34 @@ func handleCreateGame(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(links)
 }
 
-// Handler for joining the game
-func handleJoinGame(w http.ResponseWriter, r *http.Request) {
-	gameCode := mux.Vars(r)["game_code"]
-
-	fmt.Println(gameCode)
-
-	// Check who the owner of the link is
-}
-
 // Retrieve selected card number for the game from the JSON
-func getUserSelectionFromJSON(w http.ResponseWriter, r *http.Request) (int, error) {
-	type selection struct {
-		CardNumber int `json:"cardClickedNumber"`
-	}
-	userSelection := selection{}
+// func getUserSelectionFromJSON(w http.ResponseWriter, r *http.Request) (int, error) {
+// 	type selection struct {
+// 		CardNumber int `json:"cardClickedNumber"`
+// 	}
+// 	userSelection := selection{}
 
-	err := json.NewDecoder(r.Body).Decode(&userSelection)
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		log.Println("error: decoding error occured", err)
-	}
-	return userSelection.CardNumber, err
-}
+// 	err := json.NewDecoder(r.Body).Decode(&userSelection)
+// 	if err != nil {
+// 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+// 		log.Println("error: decoding error occured", err)
+// 	}
+// 	return userSelection.CardNumber, err
+// }
 
 // Updates the logistics of the game based on the current and opposite team info
-func updateGameForTeam(w http.ResponseWriter, r *http.Request, currentTeam string, oppositeTeam string, state *gameState) error {
-	selectedCardNum, err := getUserSelectionFromJSON(w, r)
-	if err != nil {
-		return err
-	}
-
+func updateGameForTeam(w http.ResponseWriter, update clientUpdate, currentTeam string, oppositeTeam string, state *gameState) error {
 	// Get the real owner of the card clicked by the user
-	var cardOwner string
-	cardOwner, err = getCardOwner(w, (*state).GameID, selectedCardNum)
+	cardOwner, err := getCardOwner(w, (*state).GameID, update.ClickedCardNum)
 	if err != nil {
 		return err
 	}
 
-	makeSelectedCardVisible(w, (*state).GameID, selectedCardNum)
+	makeSelectedCardVisible(w, (*state).GameID, update.ClickedCardNum)
 
 	if cardOwner == "Assassin" {
 		log.Println("Selected Assassin Card")
-
 		(*state).HasEnded = true
-
-		// game over
-		// Send JSON with a field game_over: true
 
 	} else if cardOwner == "Bystander" {
 		log.Println("Selected Bystander Card")
@@ -128,6 +111,16 @@ func updateGameForTeam(w http.ResponseWriter, r *http.Request, currentTeam strin
 	return nil
 }
 
+// Obfuscate the card owner information by replacing it with "N/A"
+func obfuscateCardData(state *gameState) *gameState {
+	for i, card := range state.Cards {
+		if !card.Visible {
+			state.Cards[i].Owner = "N/A"
+		}
+	}
+	return state
+}
+
 // Generate game state by retrieving values from the database
 func generateGameState(w http.ResponseWriter, state *gameState) error {
 	// Get remaining cards for both teams
@@ -152,22 +145,94 @@ func generateGameState(w http.ResponseWriter, state *gameState) error {
 	if err != nil {
 		return err
 	}
-
-	// Obfuscate the owner names if the spymaster is
-	if (*state).Owner != "Spymaster" {
-		for i, card := range state.Cards {
-			if !card.Visible {
-				state.Cards[i].Owner = "N/A"
-			}
-		}
-	}
 	return nil
 }
 
-// Handler for the Endpoint for Game Updates
-func handleGameUpdates(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.URL.RequestURI(), r.Method)
+// Switch the game to a new game- deletes the previous game, create a new one.
+// Game ID is updated in the web socket connections
+// Game ID is updated in the game state
+// hasEnded is switched back to false
+// Links are kept the same
+func switchToNewGame(w http.ResponseWriter, state *gameState) error {
+	log.Println("New game is initiated")
+	return nil
+}
 
+// Game Updates are made by the user and are stored in the client update
+func updateGameByPlayer(w http.ResponseWriter, update clientUpdate, state *gameState) error {
+	if update.NextGameInitiated {
+		return switchToNewGame(w, state)
+	}
+	// Check game code owners
+	if (*state).Owner == "Spymaster" {
+		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		log.Println("error: spymasters cannot select cards")
+		return errors.New("spymasters cannot select cards")
+	} else if (*state).Owner == "Red" {
+		// When end turn is clicked by Red team
+		if update.EndTurnClicked {
+			return removeStreakAndSwitchTurn(w, (*state).GameID, "Blue")
+		}
+
+		return updateGameForTeam(w, update, "Red", "Blue", state)
+	} else { // Blue
+		// When end turn is clicked by Blue team
+		if update.EndTurnClicked {
+			return removeStreakAndSwitchTurn(w, (*state).GameID, "Red")
+		}
+
+		return updateGameForTeam(w, update, "Blue", "Red", state)
+	}
+}
+
+// Listening on a websocket for the updates made by the client and broadcast it with all connected clients in the same game
+func listenToClient(w http.ResponseWriter, r *http.Request, conn *websocket.Conn, state *gameState) {
+	for {
+		update := clientUpdate{}
+		// Listens for an update from the client
+		err := conn.ReadJSON(&update)
+		if err != nil {
+			log.Println("Error Parsing JSON", err)
+			connections.deleteConnection((*state).GameID, conn)
+			return
+		}
+
+		log.Printf("\n\n%+v\n\n", update)
+
+		// Make changes to the game based on the update
+		if updateGameByPlayer(w, update, state) != nil {
+			return
+		}
+		// Generate game state
+		generateGameState(w, state)
+
+		// Get list of connections for the current game
+		ownerList, socketList, ok := connections.getConnectionList((*state).GameID)
+		if !ok {
+			return
+		}
+		connections.showAll() //////////////////////////////
+
+		// Broadcast the gameState to all the connections
+		for i, connection := range socketList {
+			tempGameState := *state
+			tempGameState.Owner = ownerList[i]
+
+			if ownerList[i] != "Spymaster" {
+				obfuscateCardData(&tempGameState)
+			}
+
+			err = connection.WriteJSON(&tempGameState)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+		}
+	}
+}
+
+// Handler for joining the game
+func handleJoinGame(w http.ResponseWriter, r *http.Request) {
 	state := gameState{}
 	state.TeamCode = mux.Vars(r)["game_code"]
 
@@ -175,36 +240,16 @@ func handleGameUpdates(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-
-	// Check game code owners
-	if state.Owner == "Spymaster" {
-		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-		log.Println("error: spymasters cannot select cards")
-		return
-	} else if state.Owner == "Red" {
-		err = updateGameForTeam(w, r, "Red", "Blue", &state)
-
-	} else { // Blue
-		err = updateGameForTeam(w, r, "Blue", "Red", &state)
-	}
+	socket, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		return
+		http.Error(w, "Could not open websocket connection", http.StatusBadRequest)
+		log.Println("error: unsuccessful while upgrading to websocket")
 	}
 
-	// Generate game state from the DB
-	err = generateGameState(w, &state)
-	if err != nil {
-		return
-	}
+	log.Println("CLIENT SUCCESSFULLY CONNECTED")
 
-	// Send JSON to the client
-	w.Header().Set("Content-Type", "application/json")
-
-	err = json.NewEncoder(w).Encode(state)
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		log.Println("error: encoding unsuccessful")
-	}
+	connections.addConnection(state.GameID, []string{state.Owner}, []*websocket.Conn{socket})
+	listenToClient(w, r, socket, &state)
 }
 
 // Handler for joining the game
