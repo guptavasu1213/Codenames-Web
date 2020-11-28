@@ -31,7 +31,7 @@ type clientUpdate struct {
 type gameState struct {
 	GameID             int64  `json:"-" db:"game_id,omitempty"`
 	TeamCode           string `json:"-" db:"team_code,omitempty"`
-	Owner              string `json:"-" db:"owner,omitempty"` // Red, Blue or Spymaster
+	Owner              string `json:"teamName" db:"owner,omitempty"` // Red, Blue or Spymaster
 	HasEnded           bool   `json:"hasEnded"`
 	RedCardsRemaining  int    `json:"redCardsRemaining"`
 	BlueCardsRemaining int    `json:"blueCardsRemaining"`
