@@ -274,17 +274,19 @@ func getTurnAndStreak(w http.ResponseWriter, state *gameState) error {
 
 // Get card information including the labels, owner and visibility
 func getCardInfo(w http.ResponseWriter, state *gameState) error {
+	cards := []card{}
 	query := `SELECT label, owner, visibility 
 				FROM Cards
 				WHERE game_id = $1`
-	err := db.Select(&(*state).Cards, query, (*state).GameID)
+	err := db.Select(&cards, query, (*state).GameID)
 	if err == sql.ErrNoRows {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		log.Println("no Entries found")
 	} else if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		log.Println("error: unsuccessful retrieval of remaining card info", err)
+	} else {
+		(*state).Cards = cards
 	}
-
 	return err
 }
