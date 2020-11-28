@@ -41,24 +41,6 @@ func handleCreateGame(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(links)
 }
 
-<<<<<<< HEAD
-=======
-// Retrieve selected card number for the game from the JSON
-// func getUserSelectionFromJSON(w http.ResponseWriter, r *http.Request) (int, error) {
-// 	type selection struct {
-// 		CardNumber int `json:"cardClickedNumber"`
-// 	}
-// 	userSelection := selection{}
-
-// 	err := json.NewDecoder(r.Body).Decode(&userSelection)
-// 	if err != nil {
-// 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-// 		log.Println("error: decoding error occured", err)
-// 	}
-// 	return userSelection.CardNumber, err
-// }
-
->>>>>>> a7e599119b483ee253f7a53f21d0bedec0ea0192
 // Updates the logistics of the game based on the current and opposite team info
 func updateGameForTeam(w http.ResponseWriter, update clientUpdate, currentTeam string, oppositeTeam string, state *gameState) error {
 	// Get the real owner of the card clicked by the user
@@ -115,7 +97,6 @@ func updateGameForTeam(w http.ResponseWriter, update clientUpdate, currentTeam s
 }
 
 // Obfuscate the card owner information by replacing it with "N/A"
-<<<<<<< HEAD
 func (state *gameState) obfuscateCardData() {
 	for i, card := range (*state).Cards {
 		if !card.Visible {
@@ -126,19 +107,6 @@ func (state *gameState) obfuscateCardData() {
 
 // Generate game state by retrieving values from the database
 func (state *gameState) generate(w http.ResponseWriter) error {
-=======
-func obfuscateCardData(state *gameState) *gameState {
-	for i, card := range state.Cards {
-		if !card.Visible {
-			state.Cards[i].Owner = "N/A"
-		}
-	}
-	return state
-}
-
-// Generate game state by retrieving values from the database
-func generateGameState(w http.ResponseWriter, state *gameState) error {
->>>>>>> a7e599119b483ee253f7a53f21d0bedec0ea0192
 	// Get remaining cards for both teams
 	var err error
 	(*state).RedCardsRemaining, err = getRemainingCardNum(w, (*state).GameID, "Red")
@@ -201,7 +169,6 @@ func updateGameByPlayer(w http.ResponseWriter, update clientUpdate, state *gameS
 	}
 }
 
-<<<<<<< HEAD
 // Send the game state to the client based on who the game owner is
 // Obfuscate card data when the player is not a spymaster
 func sendGameStateToClient(connection *websocket.Conn, state gameState, owner string) {
@@ -218,8 +185,6 @@ func sendGameStateToClient(connection *websocket.Conn, state gameState, owner st
 	}
 }
 
-=======
->>>>>>> a7e599119b483ee253f7a53f21d0bedec0ea0192
 // Listening on a websocket for the updates made by the client and broadcast it with all connected clients in the same game
 func listenToClient(w http.ResponseWriter, r *http.Request, conn *websocket.Conn, state *gameState) {
 	for {
@@ -232,22 +197,14 @@ func listenToClient(w http.ResponseWriter, r *http.Request, conn *websocket.Conn
 			return
 		}
 
-<<<<<<< HEAD
 		log.Printf("\n\n%+v\n\n", update) //////////////////////////////
-=======
-		log.Printf("\n\n%+v\n\n", update)
->>>>>>> a7e599119b483ee253f7a53f21d0bedec0ea0192
 
 		// Make changes to the game based on the update
 		if updateGameByPlayer(w, update, state) != nil {
 			return
 		}
 		// Generate game state
-<<<<<<< HEAD
 		state.generate(w)
-=======
-		generateGameState(w, state)
->>>>>>> a7e599119b483ee253f7a53f21d0bedec0ea0192
 
 		// Get list of connections for the current game
 		ownerList, socketList, ok := connections.getConnectionList((*state).GameID)
@@ -258,22 +215,7 @@ func listenToClient(w http.ResponseWriter, r *http.Request, conn *websocket.Conn
 
 		// Broadcast the gameState to all the connections
 		for i, connection := range socketList {
-<<<<<<< HEAD
 			sendGameStateToClient(connection, *state, ownerList[i])
-=======
-			tempGameState := *state
-			tempGameState.Owner = ownerList[i]
-
-			if ownerList[i] != "Spymaster" {
-				obfuscateCardData(&tempGameState)
-			}
-
-			err = connection.WriteJSON(&tempGameState)
-			if err != nil {
-				log.Println(err)
-				return
-			}
->>>>>>> a7e599119b483ee253f7a53f21d0bedec0ea0192
 		}
 	}
 }
@@ -287,7 +229,6 @@ func handleJoinGame(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-<<<<<<< HEAD
 
 	connection, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -306,18 +247,6 @@ func handleJoinGame(w http.ResponseWriter, r *http.Request) {
 	// Add to the connection pool
 	connections.addConnection(state.GameID, []string{state.Owner}, []*websocket.Conn{connection})
 	listenToClient(w, r, connection, &state)
-=======
-	socket, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		http.Error(w, "Could not open websocket connection", http.StatusBadRequest)
-		log.Println("error: unsuccessful while upgrading to websocket")
-	}
-
-	log.Println("CLIENT SUCCESSFULLY CONNECTED")
-
-	connections.addConnection(state.GameID, []string{state.Owner}, []*websocket.Conn{socket})
-	listenToClient(w, r, socket, &state)
->>>>>>> a7e599119b483ee253f7a53f21d0bedec0ea0192
 }
 
 // Handler for joining the game
