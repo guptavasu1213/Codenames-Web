@@ -1,12 +1,15 @@
 package main
 
 import (
-	"crypto/rand"
+	"bufio"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -15,6 +18,66 @@ import (
 func handlerToRetrieveHomePage(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./dist/static/menu.html")
 
+}
+
+func createWordList() []string {
+	wordList := []string{}
+	pickList := []string{}
+
+	// Read from a file line by line
+	file, err := os.Open("wordlist.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		wordList = append(wordList, scanner.Text())
+	}
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for i := 0; i < 25; i++ {
+		randomIndex := rand.Intn(len(wordList))
+		pickList = append(pickList, wordList[randomIndex])
+		copy(wordList[randomIndex:], wordList[randomIndex+1:])
+		wordList[len(wordList)-1] = ""
+		wordList = wordList[:len(wordList)-1]
+	}
+
+	return pickList
+}
+
+func createCardList(numb int) []string {
+	var red, blue int
+	if numb == 0 {
+		red = 8
+		blue = 9
+	} else {
+		red = 9
+		blue = 8
+	}
+
+	cardList := []string{}
+	for i := 0; i < red; i++ {
+		cardList = append(cardList, "Red")
+	}
+
+	for i := 0; i < blue; i++ {
+		cardList = append(cardList, "Blue")
+	}
+
+	for i := 0; i < 7; i++ {
+		cardList = append(cardList, "Bystander")
+	}
+
+	cardList = append(cardList, "Assassin")
+	rand.Shuffle(len(cardList), func(i, j int) {
+		cardList[i], cardList[j] = cardList[j], cardList[i]
+	})
+	return cardList
 }
 
 func randomHex(n int) (string, error) {
@@ -27,13 +90,18 @@ func randomHex(n int) (string, error) {
 
 // Handler for creating the game
 func handleCreateGame(w http.ResponseWriter, r *http.Request) {
-	redLink, _ := randomHex(3)
-	blueLink, _ := randomHex(3)
-	spyLink, _ := randomHex(3)
+	rand.Seed(time.Now().Unix())
+	redCode, _ := randomHex(3)
+	blueCode, _ := randomHex(3)
+	spyCode, _ := randomHex(3)
 
-	createNewGame(redLink, blueLink, spyLink)
+	err := createNewGame(redCode, blueCode, spyCode)
+	if err != nil {
+		log.Println("Cannot add new game", err)
+		return
+	}
 
-	links := links{RedLink: redLink, BlueLink: blueLink, SpyLink: spyLink}
+	links := links{RedCode: redCode, BlueCode: blueCode, SpyCode: spyCode}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(links)
