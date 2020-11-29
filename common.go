@@ -11,9 +11,9 @@ import (
 )
 
 type links struct {
-	RedLink  string `json:"redLink"`
-	BlueLink string `json:"blueLink"`
-	SpyLink  string `json:"spyLink"`
+	RedCode  string `json:"redCode"`
+	BlueCode string `json:"blueCode"`
+	SpyCode  string `json:"spyCode"`
 }
 
 type card struct {
