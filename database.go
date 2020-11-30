@@ -17,11 +17,46 @@ func isUniqueViolation(err error) bool {
 	return false
 }
 
-func createNewGame(redCode string, blueCode string, spyCode string) error {
+func retrieveCodes(gameID int64) ([3]string, error) {
+	colour := [3]string{"Red", "Blue", "Spymaster"}
+	codes := [3]string{}
+	var err error
+
+	for i := 0; i < 3; i++ {
+		query := `SELECT team_code
+						FROM Teams
+						WHERE game_id = $1 and owner = $2`
+		err := db.Get(&codes[i], query, gameID, colour[i])
+		if err != nil {
+			log.Println("no entries found", err)
+		}
+	}
+
+	return codes, err
+}
+
+func deleteExistGame(gameID int64) error {
+	query := `PRAGMA foreign_keys = ON;
+	DELETE FROM Games where game_id = $1`
+
+	_, err := db.Exec(query, gameID)
+	if err != nil {
+		log.Println("Cannot delete game", err)
+		return err
+	}
+
+	return err
+
+}
+
+// Function deleting currently game data and switching to new game
+
+// Create new game from generated codes
+func createNewGame(redCode string, blueCode string, spyCode string) (int64, error) {
 	tx, err := db.Beginx()
 	if err != nil {
 		log.Println("Begin transaction failed", err)
-		return err
+		return 0, err
 	}
 	now := time.Now().Unix()
 	rand.Seed(now)
@@ -46,32 +81,28 @@ func createNewGame(redCode string, blueCode string, spyCode string) error {
 	colour := [3]string{"Red", "Blue", "Spymaster"}
 	count := [3]int{red, blue, 0}
 
-	query := `INSERT INTO games (epoch, current_turn, streak) VALUES ($1, $2, $3)`
-	result, err := tx.Exec(query, now, first, 0)
+	query := `INSERT INTO games (epoch, current_turn, streak, has_ended) VALUES ($1, $2, $3, $4)`
+	result, err := tx.Exec(query, now, first, 0, 0)
 	if err != nil {
 		log.Println("Add game table failed", err)
 		tx.Rollback()
-		return err
+		return 0, err
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
 		log.Println("failed to get ID", err)
 		tx.Rollback()
-		return err
+		return 0, err
 	}
 
 	query = `INSERT INTO teams (game_id, team_code, owner, cards_remaining) VALUES ($1, $2, $3, $4)`
 	for i := 0; i < 3; i++ {
 		_, err = tx.Exec(query, id, codes[i], colour[i], count[i])
 		if err != nil {
-			if isUniqueViolation(err) {
-				log.Println("violation unique", err)
-				return err
-			}
 			log.Println("Add cards failed", err)
 			tx.Rollback()
-			return err
+			return 0, err
 		}
 	}
 
@@ -80,11 +111,11 @@ func createNewGame(redCode string, blueCode string, spyCode string) error {
 		result, err = tx.Exec(query, id, i+1, wordList[i], cardList[i], 0)
 		if err != nil {
 			tx.Rollback()
-			return err
+			return 0, err
 		}
 	}
 	tx.Commit()
-	return err
+	return id, err
 }
 
 // Retrieves the owner of the team code and game id
