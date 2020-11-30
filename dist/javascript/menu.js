@@ -15,9 +15,9 @@ function onCreateRoomClick() {
     req.onreadystatechange = function () {
         if (req.readyState == XMLHttpRequest.DONE && req.status == 200) {
             var links = JSON.parse(req.response);
-            var blueLink = links.blueLink;
-            var redLink = links.redLink;
-            var spyLink = links.spyLink;
+            var blueLink = links.blueCode;
+            var redLink = links.redCode;
+            var spyLink = links.spyCode;
             document.querySelector("#blueLinkText").innerHTML = "Blue Room";
             document.querySelector("#redLinkText").innerHTML = "Red Room";
             document.querySelector("#spyLinkText").innerHTML = "Spy Room";

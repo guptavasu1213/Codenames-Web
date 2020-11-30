@@ -1,12 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"database/sql"
 	"log"
 	"math/rand"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/mattn/go-sqlite3"
@@ -14,77 +12,22 @@ import (
 
 func isUniqueViolation(err error) bool {
 	if err, ok := err.(sqlite3.Error); ok {
-		return err.Code == 19 && err.ExtendedCode == 2067
+		return err.Code == 19 && err.ExtendedCode == 1555
 	}
-
 	return false
 }
 
-func createWordList() []string {
-	wordList := []string{}
-	pickList := []string{}
-
-	// Read from a file line by line
-	file, err := os.Open("wordlist.txt")
+func createNewGame(redCode string, blueCode string, spyCode string) error {
+	tx, err := db.Beginx()
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Begin transaction failed", err)
+		return err
 	}
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		wordList = append(wordList, scanner.Text())
-	}
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for i := 0; i < 25; i++ {
-		randomIndex := rand.Intn(len(wordList))
-		pickList = append(pickList, wordList[randomIndex])
-		copy(wordList[randomIndex:], wordList[randomIndex+1:])
-		wordList[len(wordList)-1] = ""
-		wordList = wordList[:len(wordList)-1]
-	}
-
-	return pickList
-}
-
-func createCardList(numb int) []string {
-	var red, blue int
-	if numb == 0 {
-		red = 8
-		blue = 9
-	} else {
-		red = 9
-		blue = 8
-	}
-
-	cardList := []string{}
-	for i := 0; i < red; i++ {
-		cardList = append(cardList, "Red")
-	}
-
-	for i := 0; i < blue; i++ {
-		cardList = append(cardList, "Blue")
-	}
-
-	for i := 0; i < 7; i++ {
-		cardList = append(cardList, "Bystander")
-	}
-
-	cardList = append(cardList, "Assassin")
-	rand.Shuffle(len(cardList), func(i, j int) {
-		cardList[i], cardList[j] = cardList[j], cardList[i]
-	})
-	return cardList
-}
-
-func createNewGame(redLink string, blueLink string, spyLink string) {
-	wordList := createWordList()
 	now := time.Now().Unix()
+	rand.Seed(now)
+	wordList := createWordList()
 
-	randomNumber := rand.Intn(1)
+	randomNumber := rand.Intn(2)
 	cardList := createCardList(randomNumber)
 
 	var first string
@@ -99,40 +42,49 @@ func createNewGame(redLink string, blueLink string, spyLink string) {
 		blue = 8
 	}
 
+	codes := [3]string{redCode, blueCode, spyCode}
+	colour := [3]string{"Red", "Blue", "Spymaster"}
+	count := [3]int{red, blue, 0}
+
 	query := `INSERT INTO games (epoch, current_turn, streak) VALUES ($1, $2, $3)`
-	result, err := db.Exec(query, now, first, 0)
+	result, err := tx.Exec(query, now, first, 0)
 	if err != nil {
-		log.Fatalf("Unable to execute the query. %v", err)
+		log.Println("Add game table failed", err)
+		tx.Rollback()
+		return err
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		log.Fatalf("no id. %v", err)
+		log.Println("failed to get ID", err)
+		tx.Rollback()
+		return err
 	}
 
 	query = `INSERT INTO teams (game_id, team_code, owner, cards_remaining) VALUES ($1, $2, $3, $4)`
-	result, err = db.Exec(query, id, redLink, "Red", red)
-	if err != nil {
-		log.Fatalf("Cannot add to list %v", err)
-	}
-
-	result, err = db.Exec(query, id, blueLink, "Blue", blue)
-	if err != nil {
-		log.Fatalf("Cannot add to list %v", err)
-	}
-
-	result, err = db.Exec(query, id, spyLink, "Spymaster", 0)
-	if err != nil {
-		log.Fatalf("Cannot add to list %v", err)
+	for i := 0; i < 3; i++ {
+		_, err = tx.Exec(query, id, codes[i], colour[i], count[i])
+		if err != nil {
+			if isUniqueViolation(err) {
+				log.Println("violation unique", err)
+				return err
+			}
+			log.Println("Add cards failed", err)
+			tx.Rollback()
+			return err
+		}
 	}
 
 	query = `INSERT INTO cards (game_id, card_number, label, owner, visibility) VALUES ($1, $2, $3, $4, $5)`
 	for i := 0; i < 25; i++ {
-		result, err = db.Exec(query, id, i+1, wordList[i], cardList[i], 0)
+		result, err = tx.Exec(query, id, i+1, wordList[i], cardList[i], 0)
 		if err != nil {
-			log.Fatalf("Cannot add to list %v", err)
+			tx.Rollback()
+			return err
 		}
 	}
+	tx.Commit()
+	return err
 }
 
 // Retrieves the owner of the team code and game id
@@ -274,17 +226,19 @@ func getTurnAndStreak(w http.ResponseWriter, state *gameState) error {
 
 // Get card information including the labels, owner and visibility
 func getCardInfo(w http.ResponseWriter, state *gameState) error {
+	cards := []card{}
 	query := `SELECT label, owner, visibility 
 				FROM Cards
 				WHERE game_id = $1`
-	err := db.Select(&(*state).Cards, query, (*state).GameID)
+	err := db.Select(&cards, query, (*state).GameID)
 	if err == sql.ErrNoRows {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		log.Println("no Entries found")
 	} else if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		log.Println("error: unsuccessful retrieval of remaining card info", err)
+	} else {
+		(*state).Cards = cards
 	}
-
 	return err
 }
