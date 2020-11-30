@@ -93,14 +93,24 @@ func randomHex(n int) (string, error) {
 // Handler for creating the game
 func handleCreateGame(w http.ResponseWriter, r *http.Request) {
 	rand.Seed(time.Now().Unix())
-	redCode, _ := randomHex(3)
-	blueCode, _ := randomHex(3)
-	spyCode, _ := randomHex(3)
+	var redCode, blueCode, spyCode string
 
-	err := createNewGame(redCode, blueCode, spyCode)
-	if err != nil {
-		log.Println("Cannot add new game", err)
-		return
+	for {
+		redCode, _ = randomHex(3)
+		blueCode, _ = randomHex(3)
+		spyCode, _ = randomHex(3)
+
+		_, err := createNewGame(redCode, blueCode, spyCode)
+		if err != nil {
+			if isUniqueViolation(err) {
+				log.Println("violation unique", err)
+			} else {
+				log.Println("Cannot add new game", err)
+				return
+			}
+		} else {
+			break
+		}
 	}
 
 	links := links{RedCode: redCode, BlueCode: blueCode, SpyCode: spyCode}
@@ -204,8 +214,26 @@ func (state *gameState) generate(w http.ResponseWriter) error {
 func switchToNewGame(w http.ResponseWriter, state *gameState) error {
 	log.Println("New game is initiated")
 
-	// Deleting the previous game and creating a new game
-	newGameID := int64(1)
+	// Retrieving exist codes
+	gameCodes, err := retrieveCodes((state).GameID)
+	if err != nil {
+		log.Println("Cannot retrieve code", err)
+		return err
+	}
+
+	// Deleting old game data
+	err = deleteExistGame((state).GameID)
+	if err != nil {
+		log.Println("Cannot delete existing game", err)
+		return err
+	}
+
+	// Creating new game
+	newGameID, err := createNewGame(gameCodes[0], gameCodes[1], gameCodes[2])
+	if err != nil {
+		log.Println("Cannot create new game", err)
+		return err
+	}
 
 	// Switching game id in the connection map
 	connections.switchKey((*state).GameID, newGameID)
