@@ -65,6 +65,14 @@ func (cm *connectionMap) getConnectionList(gameID int64) ([]string, []*websocket
 	return nil, nil, loaded
 }
 
+// Switch the existing Game ID with the new game id in the connection map
+func (cm *connectionMap) switchKey(oldGameID int64, newGameID int64) {
+	value, loaded := (*cm).LoadAndDelete(oldGameID)
+	if loaded {
+		(*cm).Store(newGameID, value)
+	}
+}
+
 // Remove element by index and returns back the modified slice
 func (cm *connectionMap) removeOwnerFromList(connectionList []string, i int) []string {
 	connectionList[i] = connectionList[len(connectionList)-1]

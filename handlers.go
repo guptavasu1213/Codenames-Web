@@ -200,13 +200,19 @@ func (state *gameState) generate(w http.ResponseWriter) error {
 	return nil
 }
 
-// Switch the game to a new game- deletes the previous game, create a new one.
-// Game ID is updated in the web socket connections
-// Game ID is updated in the game state
-// hasEnded is switched back to false
-// Links are kept the same
+// Switch the game to a new game- deletes the previous game, create a new one while keeping the game codes same
 func switchToNewGame(w http.ResponseWriter, state *gameState) error {
 	log.Println("New game is initiated")
+
+	// Deleting the previous game and creating a new game
+	newGameID := int64(1)
+
+	// Switching game id in the connection map
+	connections.switchKey((*state).GameID, newGameID)
+
+	// Replacing the new game id with the old game id
+	(state).GameID = newGameID
+
 	return nil
 }
 
