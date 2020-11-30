@@ -1,8 +1,6 @@
 document.querySelector("#homeButton").innerHTML = '<a href="/"><img src="../images/homebutton.png">';
 
 var gameStat = document.querySelector("#gamestat").querySelectorAll("td")
-// var gameBoard = document.querySelector("#gameboard").querySelectorAll("td")
-
 
 let socket = new WebSocket("ws://localhost:8080/api/v1/games/" + (window.location.pathname).replace("/", ""))
 console.log("Attempting websockt connection")
@@ -13,7 +11,7 @@ socket.onmessage = (msg) => {
     gameState = JSON.parse(msg.data)
     console.log(gameState)
 
-    // setting game stats are the top of the gameboard
+    // setting game stats on the top of the gameboard
     if (gameState["teamName"] != "Spymaster") {
         gameStat[1].innerHTML = "<h2>" + gameState["teamName"] + "'s Room</h2>"
         gameStat[3].innerHTML = "<b>Blue</b> - " + gameState["blueCardsRemaining"] // r1c1
@@ -29,39 +27,36 @@ socket.onmessage = (msg) => {
     var renderResult = renderedFN(gameState["cards"]);
     document.querySelector("#gameplay-filled").innerHTML = renderResult; 
 
-
-
-
-
-
-
-    
-    // var i;
-    // for (i = 0; i < gameState["cards"].length; i++) {
-    //     gameBoard[i].innerHTML = gameState["cards"][i]["label"] // adding card label
-    //     if (gameState["cards"][i]["visible"]) {
-    //         switch (gameState["cards"][i]["owner"]) {
-    //             case "Blue":
-    //                 gameBoard[i].style.backgroundColor = "Blue"
-    //                 gameBoard[i].style.fontWeight = "Bold"
-    //                 break;
-    //             case "Red":
-    //                 gameBoard[i].style.backgroundColor = "Red"
-    //                 gameBoard[i].style.fontWeight = "Bold"
-    //                 break;
-    //             case "Bystander":
-    //                 gameBoard[i].style.backgroundColor = "Gray"
-    //                 gameBoard[i].style.fontWeight = "Bold"
-    //                 break;
-    //             case "Assassin":
-    //                 gameBoard[i].style.backgroundColor = "Brown"
-    //                 gameBoard[i].style.fontWeight = "Bold"
-    //                 break;
-    //         }
-    //     }
-    // }
+    // using classes to change cards color to reflect game
+    var gameBoard = document.querySelector("#gameboard").querySelectorAll("td")
+    var i;
+    for (i = 0; i < gameState["cards"].length; i++) {
+        if (gameState["cards"][i]["visible"]) {
+            switch (gameState["cards"][i]["owner"]) {
+                case "Blue":
+                    gameBoard[i].style.backgroundColor = "Blue"
+                    gameBoard[i].style.fontWeight = "Bold"
+                    break;
+                case "Red":
+                    gameBoard[i].style.backgroundColor = "Red"
+                    gameBoard[i].style.fontWeight = "Bold"
+                    break;
+                case "Bystander":
+                    gameBoard[i].style.backgroundColor = "Gray"
+                    gameBoard[i].style.fontWeight = "Bold"
+                    break;
+                case "Assassin":
+                    gameBoard[i].style.backgroundColor = "Brown"
+                    gameBoard[i].style.fontWeight = "Bold"
+                    break;
+            }
+        }
+    }
 
 }
+
+// add event listeners to each squre
+
 
 socket.onopen = () => {
     console.log("Succesfully connected!")

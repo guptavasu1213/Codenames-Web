@@ -64,9 +64,24 @@ body {
     text-align: center;
     cursor: pointer;
     width: 10%;
-
 }
 
+.card-blue {
+    background-color: blue;
+    font-weight: bold;
+}
 
+.card-red {
+    background-color: red;
+    font-weight: bold;
+}
 
+.card-bystander {
+    background-color: gray;
+    font-weight: bold;
+}
 
+.card-assassin {
+    background-color: brown;
+    font-weight: bold;
+}
