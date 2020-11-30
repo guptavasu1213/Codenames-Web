@@ -13,6 +13,10 @@ Follow these steps: https://golang.org/doc/install
 ```
 go get -u github.com/gorilla/mux
 ```
+* Gorilla Websockets package
+```
+go get github.com/gorilla/websocket
+```
 * Sqlx Library
 ```
 go get github.com/jmoiron/sqlx
