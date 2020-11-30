@@ -30,48 +30,21 @@
             </tbody>
         </table>
 
-        <table id="gameboard">
-            <tbody>
+        <script type="text/x-dot-template" id="gameplay-template">
+            <table id="gameboard">
                 <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </tbody>
-        </table>
+                {{~it :value:index}}
+                    <td>{{=JSON.stringify(value.label).replace(/\"/g, "")}}</td>
+                    {{? index % 5 == 4 }}
+                    </tr><tr>
+                {{?}}
+                {{~}}
+            </table>
+            </script>
+        <div id="gameplay-filled"></div>
     </div>
 </body>
+<script src="../javascript/doT.js"></script>
 <script src="../javascript/gameplay.js"></script>
 
 </html>
