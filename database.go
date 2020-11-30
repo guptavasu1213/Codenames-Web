@@ -273,3 +273,35 @@ func getCardInfo(w http.ResponseWriter, state *gameState) error {
 	}
 	return err
 }
+
+// Update endGame status
+func endGame(gameID int64) error {
+	query := `UPDATE Games 
+				SET has_ended = 1 
+				WHERE game_id = $1`
+
+	_, err := db.Exec(query, gameID)
+	if err != nil {
+		log.Println("Cannot change endGame stauts", err)
+		return err
+	}
+
+	return err
+}
+
+// Check if the game has ended
+func hasGameEnded(gameID int64) (bool, error) {
+	var status bool
+	query := `SELECT has_ended
+				FROM Games
+				WHERE game_id = $1`
+
+	err := db.Get(&status, query, gameID)
+	if err != nil {
+		log.Println("no entries found", err)
+		return status, err
+	}
+
+	return status, err
+
+}
