@@ -103,12 +103,14 @@ func handleCreateGame(w http.ResponseWriter, r *http.Request) {
 		_, err := createNewGame(redCode, blueCode, spyCode)
 		if err != nil {
 			if isUniqueViolation(err) {
-				log.Println("violation unique", err)
+				log.Println("primary key violation occured", err)
 			} else {
-				log.Println("Cannot add new game", err)
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				log.Println("error: cannot create new game", err)
 				return
 			}
 		} else {
+			log.Println("Created a new game successfully")
 			break
 		}
 	}
@@ -120,24 +122,29 @@ func handleCreateGame(w http.ResponseWriter, r *http.Request) {
 }
 
 // Updates the logistics of the game based on the current and opposite team info
-func updateGameForTeam(w http.ResponseWriter, update clientUpdate, currentTeam string, oppositeTeam string, state *gameState) error {
+func updateGameForTeam(update clientUpdate, currentTeam string, oppositeTeam string, state *gameState) error {
 	// Get the real owner of the card clicked by the user
-	cardOwner, err := getCardOwner(w, (*state).GameID, update.ClickedCardNum)
+	cardOwner, err := getCardOwner((*state).GameID, update.ClickedCardNum)
 	if err != nil {
 		return err
 	}
 
-	makeSelectedCardVisible(w, (*state).GameID, update.ClickedCardNum)
+	err = makeSelectedCardVisible((*state).GameID, update.ClickedCardNum)
+	if err != nil {
+		return err
+	}
 
 	if cardOwner == "Assassin" {
 		log.Println("Selected Assassin Card")
-		(*state).HasEnded = true
-
+		err = endGame((*state).GameID)
+		if err != nil {
+			return err
+		}
 	} else if cardOwner == "Bystander" {
 		log.Println("Selected Bystander Card")
 
 		// Set streak to zero and switch the turn to other team
-		err = removeStreakAndSwitchTurn(w, (*state).GameID, oppositeTeam)
+		err = removeStreakAndSwitchTurn((*state).GameID, oppositeTeam)
 		if err != nil {
 			return err
 		}
@@ -145,13 +152,13 @@ func updateGameForTeam(w http.ResponseWriter, update clientUpdate, currentTeam s
 		log.Println("Selected Own Card")
 
 		// Increment streak
-		err = incrementStreak(w, (*state).GameID)
+		err = incrementStreak((*state).GameID)
 		if err != nil {
 			return err
 		}
 
 		// Decrease the remaining cards
-		decrementRemainingCardCount(w, (*state).GameID, currentTeam)
+		decrementRemainingCardCount((*state).GameID, currentTeam)
 		if err != nil {
 			return err
 		}
@@ -160,13 +167,13 @@ func updateGameForTeam(w http.ResponseWriter, update clientUpdate, currentTeam s
 		log.Println("Selected Opposite Team Card")
 
 		// Set streak to zero and switch the turn to other team
-		err = removeStreakAndSwitchTurn(w, (*state).GameID, oppositeTeam)
+		err = removeStreakAndSwitchTurn((*state).GameID, oppositeTeam)
 		if err != nil {
 			return err
 		}
 
 		// Decrease the remaining cards
-		decrementRemainingCardCount(w, (*state).GameID, oppositeTeam)
+		decrementRemainingCardCount((*state).GameID, oppositeTeam)
 		if err != nil {
 			return err
 		}
@@ -184,26 +191,34 @@ func (state *gameState) obfuscateCardData() {
 }
 
 // Generate game state by retrieving values from the database
-func (state *gameState) generate(w http.ResponseWriter) error {
+func (state *gameState) generate() error {
 	// Get remaining cards for both teams
 	var err error
-	(*state).RedCardsRemaining, err = getRemainingCardNum(w, (*state).GameID, "Red")
+	(*state).RedCardsRemaining, err = getRemainingCardNum((*state).GameID, "Red")
 	if err != nil {
 		return err
 	}
-	(*state).BlueCardsRemaining, err = getRemainingCardNum(w, (*state).GameID, "Blue")
+	(*state).BlueCardsRemaining, err = getRemainingCardNum((*state).GameID, "Blue")
 	if err != nil {
 		return err
 	}
 
+	// If any team has won, then we end the game
+	if (*state).RedCardsRemaining == 0 || (*state).BlueCardsRemaining == 0 {
+		err = endGame((*state).GameID)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Get the turn and streak
-	err = getTurnAndStreak(w, state)
+	err = getTurnAndStreakAndStatus(state)
 	if err != nil {
 		return err
 	}
 
 	// Get the card info
-	getCardInfo(w, state)
+	getCardInfo(state)
 	if err != nil {
 		return err
 	}
@@ -211,7 +226,7 @@ func (state *gameState) generate(w http.ResponseWriter) error {
 }
 
 // Switch the game to a new game- deletes the previous game, create a new one while keeping the game codes same
-func switchToNewGame(w http.ResponseWriter, state *gameState) error {
+func switchToNewGame(state *gameState) error {
 	log.Println("New game is initiated")
 
 	// Retrieving exist codes
@@ -245,29 +260,42 @@ func switchToNewGame(w http.ResponseWriter, state *gameState) error {
 }
 
 // Game Updates are made by the user and are stored in the client update
-func updateGameByPlayer(w http.ResponseWriter, update clientUpdate, state *gameState) error {
+func updateGameByPlayer(update clientUpdate, state *gameState) error {
 	if update.NextGameInitiated {
-		return switchToNewGame(w, state)
+		return switchToNewGame(state)
 	}
+
+	var err error
+	(*state).HasEnded, err = hasGameEnded((*state).GameID)
+	if err != nil {
+		return err
+	}
+
+	if (*state).HasEnded {
+		log.Println("error: game has already ended- cannot update game")
+		// Add to error field
+		return errors.New("error: game has already ended- cannot update game")
+	}
+
 	// Check game code owners
 	if (*state).Owner == "Spymaster" {
-		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		// http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		log.Println("error: spymasters cannot select cards")
 		return errors.New("spymasters cannot select cards")
 	} else if (*state).Owner == "Red" {
 		// When end turn is clicked by Red team
 		if update.EndTurnClicked {
-			return removeStreakAndSwitchTurn(w, (*state).GameID, "Blue")
+			return removeStreakAndSwitchTurn((*state).GameID, "Blue")
 		}
 
-		return updateGameForTeam(w, update, "Red", "Blue", state)
+		return updateGameForTeam(update, "Red", "Blue", state)
 	} else { // Blue
 		// When end turn is clicked by Blue team
 		if update.EndTurnClicked {
-			return removeStreakAndSwitchTurn(w, (*state).GameID, "Red")
+			return removeStreakAndSwitchTurn((*state).GameID, "Red")
 		}
 
-		return updateGameForTeam(w, update, "Blue", "Red", state)
+		return updateGameForTeam(update, "Blue", "Red", state)
 	}
 }
 
@@ -276,7 +304,8 @@ func updateGameByPlayer(w http.ResponseWriter, update clientUpdate, state *gameS
 func sendGameStateToClient(connection *websocket.Conn, state gameState, owner string) {
 	state.Owner = owner
 
-	if owner != "Spymaster" {
+	// When the owner of the code is not spymaster and game has not ended
+	if owner != "Spymaster" && !state.HasEnded {
 		state.obfuscateCardData()
 	}
 
@@ -288,7 +317,7 @@ func sendGameStateToClient(connection *websocket.Conn, state gameState, owner st
 }
 
 // Listening on a websocket for the updates made by the client and broadcast it with all connected clients in the same game
-func listenToClient(w http.ResponseWriter, r *http.Request, conn *websocket.Conn, state *gameState) {
+func listenToClient(r *http.Request, conn *websocket.Conn, state *gameState) {
 	for {
 		update := clientUpdate{}
 		// Listens for an update from the client
@@ -302,11 +331,11 @@ func listenToClient(w http.ResponseWriter, r *http.Request, conn *websocket.Conn
 		log.Printf("\n\n%+v\n\n", update) //////////////////////////////
 
 		// Make changes to the game based on the update
-		if updateGameByPlayer(w, update, state) != nil {
-			return
+		if updateGameByPlayer(update, state) != nil {
+			continue
 		}
 		// Generate game state
-		state.generate(w)
+		state.generate()
 
 		// Get list of connections for the current game
 		ownerList, socketList, ok := connections.getConnectionList((*state).GameID)
@@ -336,19 +365,20 @@ func handleJoinGame(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Could not open websocket connection", http.StatusBadRequest)
 		log.Println("error: unsuccessful while upgrading to websocket")
+		return
 	}
 
 	log.Println("CLIENT SUCCESSFULLY CONNECTED")
 
 	// Generate game state
-	state.generate(w)
+	state.generate()
 
 	// Send existing game state
 	sendGameStateToClient(connection, state, state.Owner)
 
 	// Add to the connection pool
 	connections.addConnection(state.GameID, []string{state.Owner}, []*websocket.Conn{connection})
-	listenToClient(w, r, connection, &state)
+	listenToClient(r, connection, &state)
 }
 
 // Handler for joining the game
