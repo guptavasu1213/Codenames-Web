@@ -32,7 +32,7 @@ type gameState struct {
 	GameID             int64  `json:"-" db:"game_id,omitempty"`
 	TeamCode           string `json:"-" db:"team_code,omitempty"`
 	Owner              string `json:"teamName" db:"owner,omitempty"` // Red, Blue or Spymaster
-	HasEnded           bool   `json:"hasEnded"`
+	HasEnded           bool   `json:"hasEnded" db:"has_ended,omitempty"`
 	RedCardsRemaining  int    `json:"redCardsRemaining"`
 	BlueCardsRemaining int    `json:"blueCardsRemaining"`
 	Turn               string `json:"turn" db:"current_turn,omitempty"` // Red or Blue

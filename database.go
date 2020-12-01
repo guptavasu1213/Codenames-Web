@@ -135,7 +135,7 @@ func getGameInfo(w http.ResponseWriter, state *gameState) error {
 }
 
 // Gets card owner for the given game and card number
-func getCardOwner(w http.ResponseWriter, gameID int64, cardNumber int) (string, error) {
+func getCardOwner(gameID int64, cardNumber int) (string, error) {
 	ownerName := ""
 
 	query := `SELECT owner
@@ -143,10 +143,8 @@ func getCardOwner(w http.ResponseWriter, gameID int64, cardNumber int) (string, 
 						WHERE game_id = $1 and card_number = $2`
 	err := db.Get(&ownerName, query, gameID, cardNumber)
 	if err == sql.ErrNoRows {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		log.Println("no Entries found")
 	} else if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		log.Println("unsuccessful data lookup")
 	}
 
@@ -154,13 +152,12 @@ func getCardOwner(w http.ResponseWriter, gameID int64, cardNumber int) (string, 
 }
 
 // Set the visibility of the given card to true
-func makeSelectedCardVisible(w http.ResponseWriter, gameID int64, cardNumber int) error {
+func makeSelectedCardVisible(gameID int64, cardNumber int) error {
 	query := `UPDATE Cards 
 				SET visibility = 1 
 				WHERE game_id = $1 and card_number = $2`
 	_, err := db.Exec(query, gameID, cardNumber)
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		log.Println("error: unsuccessful card visibility update")
 	} else {
 		log.Println("Card visibility updated successfully")
@@ -170,14 +167,13 @@ func makeSelectedCardVisible(w http.ResponseWriter, gameID int64, cardNumber int
 }
 
 // Increment the streak for the game
-func incrementStreak(w http.ResponseWriter, gameID int64) error {
+func incrementStreak(gameID int64) error {
 	query := `UPDATE Games 
 				SET streak = streak + 1 
 				WHERE game_id = $1`
 
 	_, err := db.Exec(query, gameID)
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		log.Println("error: unsuccessful streak increment")
 	} else {
 		log.Println("Streak incremented successfully")
@@ -187,14 +183,13 @@ func incrementStreak(w http.ResponseWriter, gameID int64) error {
 }
 
 // Set streak to zero and switch the turn to other team
-func removeStreakAndSwitchTurn(w http.ResponseWriter, gameID int64, oppositeTeam string) error {
+func removeStreakAndSwitchTurn(gameID int64, oppositeTeam string) error {
 	query := `UPDATE Games 
 				SET streak = 0, current_turn = $1
 				WHERE game_id = $2`
 
 	_, err := db.Exec(query, oppositeTeam, gameID)
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		log.Println("error: unsuccessful streak removal and turn switching")
 	} else {
 		log.Println("Removed streak and switched turn successfully")
@@ -204,14 +199,13 @@ func removeStreakAndSwitchTurn(w http.ResponseWriter, gameID int64, oppositeTeam
 }
 
 // Decrement the remaining card count for the given team
-func decrementRemainingCardCount(w http.ResponseWriter, gameID int64, teamName string) error {
+func decrementRemainingCardCount(gameID int64, teamName string) error {
 	query := `UPDATE Teams 
 				SET cards_remaining = cards_remaining - 1 
 				WHERE game_id = $1 and owner = $2`
 
 	_, err := db.Exec(query, gameID, teamName)
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		log.Println("error: unsuccessful card count decrement")
 	} else {
 		log.Println("Card count decremented successfully")
@@ -221,17 +215,15 @@ func decrementRemainingCardCount(w http.ResponseWriter, gameID int64, teamName s
 }
 
 // Get remaining cards for the team
-func getRemainingCardNum(w http.ResponseWriter, gameID int64, teamName string) (int, error) {
+func getRemainingCardNum(gameID int64, teamName string) (int, error) {
 	var remainingCards int
 	query := `SELECT cards_remaining 
 				FROM Teams
 				WHERE game_id = $1 and owner = $2`
 	err := db.Get(&remainingCards, query, gameID, teamName)
 	if err == sql.ErrNoRows {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		log.Println("no Entries found")
 	} else if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		log.Println("error: unsuccessful retrieval of remaining card count")
 	}
 
@@ -239,16 +231,14 @@ func getRemainingCardNum(w http.ResponseWriter, gameID int64, teamName string) (
 }
 
 // Get the turn and the streak for the game
-func getTurnAndStreak(w http.ResponseWriter, state *gameState) error {
-	query := `SELECT current_turn, streak 
+func getTurnAndStreakAndStatus(state *gameState) error {
+	query := `SELECT current_turn, streak, has_ended
 				FROM Games
 				WHERE game_id = $1`
 	err := db.Get(state, query, (*state).GameID)
 	if err == sql.ErrNoRows {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		log.Println("no Entries found")
 	} else if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		log.Println("error: unsuccessful retrieval of turn and streak")
 	}
 
@@ -256,17 +246,15 @@ func getTurnAndStreak(w http.ResponseWriter, state *gameState) error {
 }
 
 // Get card information including the labels, owner and visibility
-func getCardInfo(w http.ResponseWriter, state *gameState) error {
+func getCardInfo(state *gameState) error {
 	cards := []card{}
 	query := `SELECT label, owner, visibility 
 				FROM Cards
 				WHERE game_id = $1`
 	err := db.Select(&cards, query, (*state).GameID)
 	if err == sql.ErrNoRows {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		log.Println("no Entries found")
 	} else if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		log.Println("error: unsuccessful retrieval of remaining card info", err)
 	} else {
 		(*state).Cards = cards
@@ -274,7 +262,7 @@ func getCardInfo(w http.ResponseWriter, state *gameState) error {
 	return err
 }
 
-// Update endGame status
+// End the game with given ID
 func endGame(gameID int64) error {
 	query := `UPDATE Games 
 				SET has_ended = 1 
