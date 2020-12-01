@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/mattn/go-sqlite3"
 )
 
@@ -35,7 +36,7 @@ func retrieveCodes(gameID int64) ([3]string, error) {
 	return codes, err
 }
 
-func deleteExistGame(gameID int64) error {
+func deleteExistingGame(gameID int64) error {
 	query := `PRAGMA foreign_keys = ON;
 	DELETE FROM Games where game_id = $1`
 
@@ -152,12 +153,13 @@ func getCardOwner(gameID int64, cardNumber int) (string, error) {
 }
 
 // Set the visibility of the given card to true
-func makeSelectedCardVisible(gameID int64, cardNumber int) error {
+func makeSelectedCardVisible(tx *sqlx.Tx, gameID int64, cardNumber int) error {
 	query := `UPDATE Cards 
 				SET visibility = 1 
 				WHERE game_id = $1 and card_number = $2`
-	_, err := db.Exec(query, gameID, cardNumber)
+	_, err := tx.Exec(query, gameID, cardNumber)
 	if err != nil {
+		tx.Rollback()
 		log.Println("error: unsuccessful card visibility update")
 	} else {
 		log.Println("Card visibility updated successfully")
@@ -167,13 +169,14 @@ func makeSelectedCardVisible(gameID int64, cardNumber int) error {
 }
 
 // Increment the streak for the game
-func incrementStreak(gameID int64) error {
+func incrementStreak(tx *sqlx.Tx, gameID int64) error {
 	query := `UPDATE Games 
 				SET streak = streak + 1 
 				WHERE game_id = $1`
 
-	_, err := db.Exec(query, gameID)
+	_, err := tx.Exec(query, gameID)
 	if err != nil {
+		tx.Rollback()
 		log.Println("error: unsuccessful streak increment")
 	} else {
 		log.Println("Streak incremented successfully")
@@ -183,13 +186,14 @@ func incrementStreak(gameID int64) error {
 }
 
 // Set streak to zero and switch the turn to other team
-func removeStreakAndSwitchTurn(gameID int64, oppositeTeam string) error {
+func removeStreakAndSwitchTurn(tx *sqlx.Tx, gameID int64, oppositeTeam string) error {
 	query := `UPDATE Games 
 				SET streak = 0, current_turn = $1
 				WHERE game_id = $2`
 
-	_, err := db.Exec(query, oppositeTeam, gameID)
+	_, err := tx.Exec(query, oppositeTeam, gameID)
 	if err != nil {
+		tx.Rollback()
 		log.Println("error: unsuccessful streak removal and turn switching")
 	} else {
 		log.Println("Removed streak and switched turn successfully")
@@ -199,13 +203,14 @@ func removeStreakAndSwitchTurn(gameID int64, oppositeTeam string) error {
 }
 
 // Decrement the remaining card count for the given team
-func decrementRemainingCardCount(gameID int64, teamName string) error {
+func decrementRemainingCardCount(tx *sqlx.Tx, gameID int64, teamName string) error {
 	query := `UPDATE Teams 
 				SET cards_remaining = cards_remaining - 1 
 				WHERE game_id = $1 and owner = $2`
 
-	_, err := db.Exec(query, gameID, teamName)
+	_, err := tx.Exec(query, gameID, teamName)
 	if err != nil {
+		tx.Rollback()
 		log.Println("error: unsuccessful card count decrement")
 	} else {
 		log.Println("Card count decremented successfully")
@@ -263,13 +268,14 @@ func getCardInfo(state *gameState) error {
 }
 
 // End the game with given ID
-func endGame(gameID int64) error {
+func endGame(tx *sqlx.Tx, gameID int64) error {
 	query := `UPDATE Games 
 				SET has_ended = 1 
 				WHERE game_id = $1`
 
-	_, err := db.Exec(query, gameID)
+	_, err := tx.Exec(query, gameID)
 	if err != nil {
+		tx.Rollback()
 		log.Println("Cannot change endGame stauts", err)
 		return err
 	}

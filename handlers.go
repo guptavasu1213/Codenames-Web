@@ -129,14 +129,19 @@ func updateGameForTeam(update clientUpdate, currentTeam string, oppositeTeam str
 		return err
 	}
 
-	err = makeSelectedCardVisible((*state).GameID, update.ClickedCardNum)
+	tx, err := db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	err = makeSelectedCardVisible(tx, (*state).GameID, update.ClickedCardNum)
 	if err != nil {
 		return err
 	}
 
 	if cardOwner == "Assassin" {
 		log.Println("Selected Assassin Card")
-		err = endGame((*state).GameID)
+		err = endGame(tx, (*state).GameID)
 		if err != nil {
 			return err
 		}
@@ -144,7 +149,7 @@ func updateGameForTeam(update clientUpdate, currentTeam string, oppositeTeam str
 		log.Println("Selected Bystander Card")
 
 		// Set streak to zero and switch the turn to other team
-		err = removeStreakAndSwitchTurn((*state).GameID, oppositeTeam)
+		err = removeStreakAndSwitchTurn(tx, (*state).GameID, oppositeTeam)
 		if err != nil {
 			return err
 		}
@@ -152,13 +157,13 @@ func updateGameForTeam(update clientUpdate, currentTeam string, oppositeTeam str
 		log.Println("Selected Own Card")
 
 		// Increment streak
-		err = incrementStreak((*state).GameID)
+		err = incrementStreak(tx, (*state).GameID)
 		if err != nil {
 			return err
 		}
 
 		// Decrease the remaining cards
-		decrementRemainingCardCount((*state).GameID, currentTeam)
+		decrementRemainingCardCount(tx, (*state).GameID, currentTeam)
 		if err != nil {
 			return err
 		}
@@ -167,16 +172,21 @@ func updateGameForTeam(update clientUpdate, currentTeam string, oppositeTeam str
 		log.Println("Selected Opposite Team Card")
 
 		// Set streak to zero and switch the turn to other team
-		err = removeStreakAndSwitchTurn((*state).GameID, oppositeTeam)
+		err = removeStreakAndSwitchTurn(tx, (*state).GameID, oppositeTeam)
 		if err != nil {
 			return err
 		}
 
 		// Decrease the remaining cards
-		decrementRemainingCardCount((*state).GameID, oppositeTeam)
+		decrementRemainingCardCount(tx, (*state).GameID, oppositeTeam)
 		if err != nil {
 			return err
 		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		log.Println("Error while committing the transaction:", err)
+		return err
 	}
 	return nil
 }
@@ -205,8 +215,17 @@ func (state *gameState) generate() error {
 
 	// If any team has won, then we end the game
 	if (*state).RedCardsRemaining == 0 || (*state).BlueCardsRemaining == 0 {
-		err = endGame((*state).GameID)
+		tx, err := db.Beginx()
 		if err != nil {
+			return err
+		}
+		err = endGame(tx, (*state).GameID)
+		if err != nil {
+			return err
+		}
+		err = tx.Commit()
+		if err != nil {
+			log.Println("Error while committing the transaction:", err)
 			return err
 		}
 	}
@@ -237,7 +256,7 @@ func switchToNewGame(state *gameState) error {
 	}
 
 	// Deleting old game data
-	err = deleteExistGame((state).GameID)
+	err = deleteExistingGame((state).GameID)
 	if err != nil {
 		log.Println("Cannot delete existing game", err)
 		return err
@@ -277,6 +296,11 @@ func updateGameByPlayer(update clientUpdate, state *gameState) error {
 		return errors.New("error: game has already ended- cannot update game")
 	}
 
+	tx, err := db.Beginx()
+	if err != nil {
+		return err
+	}
+
 	// Check game code owners
 	if (*state).Owner == "Spymaster" {
 		// http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
@@ -285,22 +309,37 @@ func updateGameByPlayer(update clientUpdate, state *gameState) error {
 	} else if (*state).Owner == "Red" {
 		// When end turn is clicked by Red team
 		if update.EndTurnClicked {
-			return removeStreakAndSwitchTurn((*state).GameID, "Blue")
+			err = removeStreakAndSwitchTurn(tx, (*state).GameID, "Blue")
+			if err != nil {
+				return err
+			}
+			err = tx.Commit()
+			if err != nil {
+				log.Println("Error while committing the transaction:", err)
+				return err
+			}
 		}
 
 		return updateGameForTeam(update, "Red", "Blue", state)
 	} else { // Blue
 		// When end turn is clicked by Blue team
 		if update.EndTurnClicked {
-			return removeStreakAndSwitchTurn((*state).GameID, "Red")
+			err = removeStreakAndSwitchTurn(tx, (*state).GameID, "Red")
+			if err != nil {
+				return err
+			}
+			err = tx.Commit()
+			if err != nil {
+				log.Println("Error while committing the transaction:", err)
+				return err
+			}
 		}
-
 		return updateGameForTeam(update, "Blue", "Red", state)
 	}
 }
 
 // Send the game state to the client based on who the game owner is
-// Obfuscate card data when the player is not a spymaster
+// Obfuscate card data when the player is not a spymaster and when game is in progress
 func sendGameStateToClient(connection *websocket.Conn, state gameState, owner string) {
 	state.Owner = owner
 
