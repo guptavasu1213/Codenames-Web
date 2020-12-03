@@ -1,3 +1,5 @@
 .DS_Store
 Codenames-Web
 apitest.http
+node_modules/
+*.db

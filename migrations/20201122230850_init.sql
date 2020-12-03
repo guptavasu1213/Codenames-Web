@@ -6,22 +6,29 @@ CREATE TABLE games (
        game_id INTEGER PRIMARY KEY,
        epoch INTEGER,
        current_turn text,
-       streak INTEGER
+       streak INTEGER,
+       has_ended INTEGER
 );
 
 CREATE TABLE teams (
-       game_id INTEGER REFERENCES games(game_id),
+       game_id INTEGER REFERENCES games(game_id)
+		ON DELETE CASCADE
+              ON UPDATE CASCADE,
        team_code text PRIMARY KEY,
        owner text,
        cards_remaining INTEGER
+              
 );
 
 CREATE TABLE  cards (
-       game_id INTEGER REFERENCES games(game_id),
+       game_id INTEGER REFERENCES games(game_id)
+		ON DELETE CASCADE
+              ON UPDATE CASCADE,
        card_number INTEGER,
        label text,
        owner text,
        visibility INTEGER
+              
 );
 				   
 -- +goose StatementEnd

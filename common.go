@@ -32,7 +32,7 @@ type gameState struct {
 	GameID             int64  `json:"-" db:"game_id,omitempty"`
 	TeamCode           string `json:"-" db:"team_code,omitempty"`
 	Owner              string `json:"teamName" db:"owner,omitempty"` // Red, Blue or Spymaster
-	HasEnded           bool   `json:"hasEnded"`
+	HasEnded           bool   `json:"hasEnded" db:"has_ended,omitempty"`
 	RedCardsRemaining  int    `json:"redCardsRemaining"`
 	BlueCardsRemaining int    `json:"blueCardsRemaining"`
 	Turn               string `json:"turn" db:"current_turn,omitempty"` // Red or Blue
@@ -63,6 +63,14 @@ func (cm *connectionMap) getConnectionList(gameID int64) ([]string, []*websocket
 		return ownerList, socketList, loaded
 	}
 	return nil, nil, loaded
+}
+
+// Switch the existing Game ID with the new game id in the connection map
+func (cm *connectionMap) switchKey(oldGameID int64, newGameID int64) {
+	value, loaded := (*cm).LoadAndDelete(oldGameID)
+	if loaded {
+		(*cm).Store(newGameID, value)
+	}
 }
 
 // Remove element by index and returns back the modified slice
