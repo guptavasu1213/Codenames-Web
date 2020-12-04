@@ -51,6 +51,23 @@ socket.onmessage = (msg) => {
 		}
 	}
 
+	// if team on streak
+	if (gameState["streak"] > 0 && gameState["teamName"] == gameState["turn"]) {
+		document.querySelector("#newGame").innerHTML = "End Turn";
+		document.querySelector("#newGame").style.visibility = "visible";
+		document.querySelector("#newGame").addEventListener("click", onEndTurnClick);
+
+		function onEndTurnClick() {
+			sendUpdate(null, true, false);
+			document.querySelector("#newGame").style.visibility = "hidden";
+		}
+	}
+
+	// if game ended and on stream
+	if (gameState["streak"] > 0 && gameState["hasEnded"]) {
+		document.querySelector("#newGame").innerHTML = "New Game";
+	}
+
 	// using doT.js to fill in the card labels
 	var template = document.querySelector("#gameplay-template").innerHTML;
 	var renderedFN = doT.template(template);

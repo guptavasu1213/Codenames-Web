@@ -83,3 +83,15 @@ body {
 	font-weight: 1000;
 	color: gray;
 }
+#newGame {
+	font-family: Arial, Helvetica, sans-serif;
+	text-align: center;
+	color: white;
+	font-size: 40px;
+}
+
+#newGame:hover {
+	cursor: pointer;
+	font-weight: 1000;
+	color: gray;
+}
