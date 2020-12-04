@@ -1,87 +1,85 @@
 @font-face {
-    font-family: 'logoFont';
-    src: url('../fonts/logoFont.woff');
+	font-family: "logoFont";
+	src: url("../fonts/logoFont.woff");
+}
+
+@font-face {
+	font-family: "linkFont";
+	src: url("../fonts/linkFont.woff");
 }
 
 #logoText {
 	align-content: center;
-	text-align: center ;
+	text-align: center;
 	font-family: logoFont;
 	color: white;
-	font-size: 50px;
+	font-size: 60px;
 }
 
 #homeButton {
-    height: 50px;
-    padding-top: 20px;
-    padding-right: 20px;
-    padding-bottom: 20px;
-    padding-left: 20px;
+	height: 50px;
+	padding-top: 20px;
+	padding-right: 20px;
+	padding-bottom: 20px;
+	padding-left: 20px;
 }
-
 
 body {
-	background-color: black
-}
-
-#gameplay {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+	background-color: black;
 }
 
 #gamestat {
-        align-self: center;
-        width: 900px;
-        table-layout: fixed;
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 20px;
-        margin-left: auto;
-        margin-right: auto;
+	border-collapse: collapse;
+	align-self: center;
+	width: 900px;
+	table-layout: fixed;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 20px;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 #gamestat td {
-    color: white;
-    text-align: center;
+	color: white;
+	text-align: center;
+	padding: 0;
 }
 
 #gameboard {
-    border-collapse: separate;
-    border-spacing: 20px;
-    align-self: center;
-    max-width: 1000px;
-    /* table-layout: fixed; */
-    font-family: "logoFont";
-    /* margin-left: auto;
-    margin-right: auto; */
-
+	border-collapse: separate;
+	border-spacing: 20px;
+	align-self: center;
+	table-layout: fixed;
+	font-family: "logoFont";
+	margin-left: auto;
+	margin-right: auto;
+	width: 1000px;
 }
 
 #gameboard td {
-    background-color: white;
-    height: 100px;
-    text-align: center;
-    cursor: pointer;
-    width: 10%;
+	background-color: white;
+	height: 100px;
+	text-align: center;
+	cursor: pointer;
+	/* white-space: nowrap; */
 }
 
-.card-blue {
-    background-color: blue;
-    font-weight: bold;
+#gameEnded {
+	color: white;
+	font-family: linkFont;
+	font-size: 50px;
+	text-align: center;
 }
 
-.card-red {
-    background-color: red;
-    font-weight: bold;
+#newGame {
+	font-family: Arial, Helvetica, sans-serif;
+	text-align: center;
+	color: white;
+	font-size: 40px;
 }
 
-.card-bystander {
-    background-color: gray;
-    font-weight: bold;
-}
-
-.card-assassin {
-    background-color: brown;
-    font-weight: bold;
+#newGame:hover {
+	cursor: pointer;
+	font-weight: 1000;
+	color: gray;
 }
