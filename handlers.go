@@ -64,18 +64,18 @@ func createCardList(numb int) []string {
 
 	cardList := []string{}
 	for i := 0; i < red; i++ {
-		cardList = append(cardList, "Red")
+		cardList = append(cardList, redTeam)
 	}
 
 	for i := 0; i < blue; i++ {
-		cardList = append(cardList, "Blue")
+		cardList = append(cardList, blueTeam)
 	}
 
 	for i := 0; i < 7; i++ {
-		cardList = append(cardList, "Bystander")
+		cardList = append(cardList, bystanderCard)
 	}
 
-	cardList = append(cardList, "Assassin")
+	cardList = append(cardList, assassinCard)
 	rand.Shuffle(len(cardList), func(i, j int) {
 		cardList[i], cardList[j] = cardList[j], cardList[i]
 	})
@@ -139,13 +139,13 @@ func updateGameForTeam(update clientUpdate, currentTeam string, oppositeTeam str
 		return err
 	}
 
-	if cardOwner == "Assassin" {
+	if cardOwner == assassinCard {
 		log.Println("Selected Assassin Card")
 		err = endGame(tx, (*state).GameID)
 		if err != nil {
 			return err
 		}
-	} else if cardOwner == "Bystander" {
+	} else if cardOwner == bystanderCard {
 		log.Println("Selected Bystander Card")
 
 		// Set streak to zero and switch the turn to other team
@@ -185,7 +185,7 @@ func updateGameForTeam(update clientUpdate, currentTeam string, oppositeTeam str
 	}
 	err = tx.Commit()
 	if err != nil {
-		log.Println("Error while committing the transaction:", err)
+		log.Println("error: could not commit transaction:", err)
 		return err
 	}
 	return nil
@@ -204,11 +204,11 @@ func (state *gameState) obfuscateCardData() {
 func (state *gameState) generate() error {
 	// Get remaining cards for both teams
 	var err error
-	(*state).RedCardsRemaining, err = getRemainingCardNum((*state).GameID, "Red")
+	(*state).RedCardsRemaining, err = getRemainingCardNum((*state).GameID, redTeam)
 	if err != nil {
 		return err
 	}
-	(*state).BlueCardsRemaining, err = getRemainingCardNum((*state).GameID, "Blue")
+	(*state).BlueCardsRemaining, err = getRemainingCardNum((*state).GameID, blueTeam)
 	if err != nil {
 		return err
 	}
@@ -225,7 +225,7 @@ func (state *gameState) generate() error {
 		}
 		err = tx.Commit()
 		if err != nil {
-			log.Println("Error while committing the transaction:", err)
+			log.Println("error: could not commit transaction:", err)
 			return err
 		}
 	}
@@ -302,39 +302,39 @@ func updateGameByPlayer(update clientUpdate, state *gameState) error {
 	}
 
 	// Check game code owners
-	if (*state).Owner == "Spymaster" {
+	if (*state).Owner == spymasterTeam {
 		// http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		log.Println("error: spymasters cannot select cards")
 		return errors.New("spymasters cannot select cards")
-	} else if (*state).Owner == "Red" {
+	} else if (*state).Owner == redTeam {
 		// When end turn is clicked by Red team
 		if update.EndTurnClicked {
-			err = removeStreakAndSwitchTurn(tx, (*state).GameID, "Blue")
+			err = removeStreakAndSwitchTurn(tx, (*state).GameID, blueTeam)
 			if err != nil {
 				return err
 			}
 			err = tx.Commit()
 			if err != nil {
-				log.Println("Error while committing the transaction:", err)
+				log.Println("error: could not commit transaction:", err)
 				return err
 			}
 		}
 
-		return updateGameForTeam(update, "Red", "Blue", state)
+		return updateGameForTeam(update, redTeam, blueTeam, state)
 	} else { // Blue
 		// When end turn is clicked by Blue team
 		if update.EndTurnClicked {
-			err = removeStreakAndSwitchTurn(tx, (*state).GameID, "Red")
+			err = removeStreakAndSwitchTurn(tx, (*state).GameID, redTeam)
 			if err != nil {
 				return err
 			}
 			err = tx.Commit()
 			if err != nil {
-				log.Println("Error while committing the transaction:", err)
+				log.Println("error: could not commit transaction:", err)
 				return err
 			}
 		}
-		return updateGameForTeam(update, "Blue", "Red", state)
+		return updateGameForTeam(update, blueTeam, redTeam, state)
 	}
 }
 
@@ -344,7 +344,7 @@ func sendGameStateToClient(connection *websocket.Conn, state gameState, owner st
 	state.Owner = owner
 
 	// When the owner of the code is not spymaster and game has not ended
-	if owner != "Spymaster" && !state.HasEnded {
+	if owner != spymasterTeam && !state.HasEnded {
 		state.obfuscateCardData()
 	}
 
@@ -362,12 +362,10 @@ func listenToClient(r *http.Request, conn *websocket.Conn, state *gameState) {
 		// Listens for an update from the client
 		err := conn.ReadJSON(&update)
 		if err != nil {
-			log.Println("Error Parsing JSON", err)
+			log.Println("error: JSON parsing failed", err)
 			connections.deleteConnection((*state).GameID, conn)
 			return
 		}
-
-		log.Printf("\n\n%+v\n\n", update) //////////////////////////////
 
 		// Make changes to the game based on the update
 		if updateGameByPlayer(update, state) != nil {
@@ -381,7 +379,6 @@ func listenToClient(r *http.Request, conn *websocket.Conn, state *gameState) {
 		if !ok {
 			return
 		}
-		connections.showAll() //////////////////////////////
 
 		// Broadcast the gameState to all the connections
 		for i, connection := range socketList {
@@ -407,7 +404,7 @@ func handleJoinGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("CLIENT SUCCESSFULLY CONNECTED")
+	log.Println("Client connection successfully upgraded to a websocket")
 
 	// Generate game state
 	state.generate()
