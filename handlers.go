@@ -192,12 +192,13 @@ func updateGameForTeam(update clientUpdate, currentTeam string, oppositeTeam str
 }
 
 // Obfuscate the card owner information by replacing it with "N/A"
-func (state *gameState) obfuscateCardData() {
-	for i, card := range (*state).Cards {
+func obfuscateCardData(cardArr []card) []card {
+	for i, card := range cardArr {
 		if !card.Visible {
-			(*state).Cards[i].Owner = "N/A"
+			cardArr[i].Owner = "N/A"
 		}
 	}
+	return cardArr
 }
 
 // Generate game state by retrieving values from the database
@@ -345,10 +346,11 @@ func sendGameStateToClient(connection *websocket.Conn, state gameState, owner st
 
 	// When the owner of the code is not spymaster and game has not ended
 	if owner != spymasterTeam && !state.HasEnded {
-		state.obfuscateCardData()
+		log.Println("OBFUSCATE DATA")
+		b := make([]card, len(state.Cards))
+		copy(b, state.Cards)
+		state.Cards = obfuscateCardData(b)
 	}
-
-	log.Printf("=========================>>>> %+v\n\n", state)
 
 	err := connection.WriteJSON(&state)
 	if err != nil {
@@ -384,7 +386,7 @@ func listenToClient(r *http.Request, conn *websocket.Conn, state *gameState) {
 
 		// Broadcast the gameState to all the connections
 		for i, connection := range socketList {
-			sendGameStateToClient(connection, *state, ownerList[i])
+			sendGameStateToClient(connection, (*state), ownerList[i])
 		}
 	}
 }

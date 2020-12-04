@@ -87,7 +87,7 @@ function onCreateRoomClick() {
 			document.querySelector("#homeButton").innerHTML = '<a href="/"><img src="../images/homebutton.png">';
 		}
 	};
-	req.open("POST", "/api/v1/create");
+	req.open("POST", "/api/v1/games");
 	req.send();
 }
 function OnJoinRoomClick() {
