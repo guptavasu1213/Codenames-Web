@@ -1,50 +1,44 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>codenames</title>
+		<link href="../styles/gameplay.css" rel="stylesheet" type="text/css" />
+	</head>
 
-<head>
-    <meta charset="UTF-8">
-    <title>codenames</title>
-    <link href="../styles/gameplay.css" rel="stylesheet" type="text/css">
-</head>
+	<body>
+		<div id="homeButton"></div>
 
-<body>
-    <div id="homeButton"></div>
-    <div id="gameplay">
+		<div id="gameplay">
+			<div id="logoText">CODE<br />NAMES</div>
+			<br />
+			<div id="gameEnded"></div>
+			<br />
+			<table id="gamestat">
+				<tbody>
+					<tr>
+						<td></td>
+						<td></td>
+						<td></td>
+					</tr>
+				</tbody>
+			</table>
 
-        <div id="logoText">CODE<br>NAMES</div>
-
-        <br><br>
-
-        <table id="gamestat">
-            <tbody>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </tbody>
-        </table>
-
-        <script type="text/x-dot-template" id="gameplay-template">
-            <table id="gameboard">
-                <tr>
-                {{~it :value:index}}
-                    <td>{{=JSON.stringify(value.label).replace(/\"/g, "")}}</td>
-                    {{? index % 5 == 4 }}
-                    </tr><tr>
-                {{?}}
-                {{~}}
-            </table>
-            </script>
-        <div id="gameplay-filled"></div>
-    </div>
-</body>
-<script src="../javascript/doT.js"></script>
-<script src="../javascript/gameplay.js"></script>
-
+			<script type="text/x-dot-template" id="gameplay-template">
+				<table id="gameboard">
+				    <tr>
+				    {{~it :value:index}}
+				        <td>{{=JSON.stringify(value.label).replace(/\"/g, "")}}</td>
+				        {{? index % 5 == 4 }}
+				        </tr><tr>
+				    {{?}}
+				    {{~}}
+				</table>
+			</script>
+			<div id="gameplay-filled"></div>
+			<div id="newGame"></div>
+		</div>
+	</body>
+	<script src="../javascript/doT.js"></script>
+	<script src="../javascript/gameplay.js"></script>
 </html>
