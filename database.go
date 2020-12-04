@@ -11,6 +11,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
+// Detects Primary Key Violation
 func isUniqueViolation(err error) bool {
 	if err, ok := err.(sqlite3.Error); ok {
 		return err.Code == 19 && err.ExtendedCode == 1555
@@ -18,8 +19,9 @@ func isUniqueViolation(err error) bool {
 	return false
 }
 
+// Retrieve Game Codes for Spymaster, Red, and Blue teams.
 func retrieveCodes(gameID int64) ([3]string, error) {
-	colour := [3]string{"Red", "Blue", "Spymaster"}
+	colour := [3]string{redTeam, blueTeam, spymasterTeam}
 	codes := [3]string{}
 	var err error
 
@@ -36,6 +38,7 @@ func retrieveCodes(gameID int64) ([3]string, error) {
 	return codes, err
 }
 
+// Delete game with the given ID from the DB
 func deleteExistingGame(gameID int64) error {
 	query := `PRAGMA foreign_keys = ON;
 	DELETE FROM Games where game_id = $1`
@@ -49,8 +52,6 @@ func deleteExistingGame(gameID int64) error {
 	return err
 
 }
-
-// Function deleting currently game data and switching to new game
 
 // Create new game from generated codes
 func createNewGame(redCode string, blueCode string, spyCode string) (int64, error) {
@@ -67,20 +68,20 @@ func createNewGame(redCode string, blueCode string, spyCode string) (int64, erro
 	cardList := createCardList(randomNumber)
 
 	var first string
-	var red, blue int
+	var redCardCount, blueCardCount int
 	if randomNumber == 0 {
-		first = "Blue"
-		red = 8
-		blue = 9
+		first = blueTeam
+		redCardCount = 8
+		blueCardCount = 9
 	} else {
-		first = "Red"
-		red = 9
-		blue = 8
+		first = redTeam
+		redCardCount = 9
+		blueCardCount = 8
 	}
 
 	codes := [3]string{redCode, blueCode, spyCode}
-	colour := [3]string{"Red", "Blue", "Spymaster"}
-	count := [3]int{red, blue, 0}
+	colour := [3]string{redTeam, blueTeam, spymasterTeam}
+	count := [3]int{redCardCount, blueCardCount, 0}
 
 	query := `INSERT INTO games (epoch, current_turn, streak, has_ended) VALUES ($1, $2, $3, $4)`
 	result, err := tx.Exec(query, now, first, 0, 0)
@@ -115,7 +116,11 @@ func createNewGame(redCode string, blueCode string, spyCode string) (int64, erro
 			return 0, err
 		}
 	}
-	tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		log.Println("Error while committing the transaction:", err)
+	}
+
 	return id, err
 }
 
