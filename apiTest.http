@@ -4,20 +4,8 @@
 #Variables
 :port = 8080
 :api = http://localhost::port/api/v1
-:redCode = dffdd34f
-:blueCode = kkfdd34f
-:spymasterCode = ssfdd34f
-:invalidCode = thisIsNotGonnaWork
 
 # ======== Test Game Creation End-Point ========
-POST :api/create
-
-# ======== Test Game Updation End-Point ========
-# Make a move
-PUT :api/games/:redCode
-Content-Type: application/json
-
-{
-	"card_clicked_number" : 2
-}
-
+# Create a new game
+# Returns join codes for Red, Blue and Spymaster
+POST :api/games
