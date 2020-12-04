@@ -348,6 +348,8 @@ func sendGameStateToClient(connection *websocket.Conn, state gameState, owner st
 		state.obfuscateCardData()
 	}
 
+	log.Printf("=========================>>>> %+v\n\n", state)
+
 	err := connection.WriteJSON(&state)
 	if err != nil {
 		log.Println(err)

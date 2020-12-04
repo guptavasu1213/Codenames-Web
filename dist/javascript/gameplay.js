@@ -2,6 +2,8 @@ document.querySelector("#homeButton").innerHTML = '<a href="/"><img src="../imag
 
 var gameStat = document.querySelector("#gamestat").querySelectorAll("td");
 
+var cardOwners = [];
+
 let socket = new WebSocket("ws://localhost:8080/api/v1/games/" + window.location.pathname.replace("/", ""));
 console.log("Attempting websockt connection");
 socket.onopen = () => {
@@ -23,7 +25,7 @@ socket.onmessage = (msg) => {
 		gameStat[1].innerHTML = "<h2>" + gameState["teamName"] + "'s Room</h2> <h3> " + gameState["turn"] + "'s Turn </h3>";
 		gameStat[2].innerHTML = "<b>Red</b> - " + gameState["redCardsRemaining"]; // r1c3
 	} else {
-		gameStat[1].innerHTML = "<h2>" + gameState["teamName"] + "'s Room</h2>";
+		gameStat[1].innerHTML = "<h2>" + gameState["teamName"] + "'s Room</h2> <h3> " + gameState["turn"] + "'s Turn </h3>";
 	}
 
 	document.querySelector("#newGame").style.visibility = "hidden";
@@ -48,6 +50,35 @@ socket.onmessage = (msg) => {
 		function onNewGameClick() {
 			sendUpdate(null, null, true);
 			document.querySelector("#newGame").style.visibility = "hidden";
+			cardOwners = [];
+			location.reload();
+			// extracting card owners
+			if (gameState["cards"][i]["owner"] != "N/A" && cardOwners.length != 25) {
+				// console.log("WEB ----", gameState["cards"][i]["owner"]);
+				cardOwners.push(gameState["cards"][i]["owner"]);
+				// console.log("Array ----", cardOwners[i]);
+			}
+
+			// if (gameState["teamName"] == "Spymaster") {
+			// 	switch (cardOwners[i]) {
+			// 		case "Blue":
+			// 			gameBoard[i].style.backgroundColor = "Blue";
+			// 			gameBoard[i].style.fontWeight = "Bold";
+			// 			break;
+			// 		case "Red":
+			// 			gameBoard[i].style.backgroundColor = "Red";
+			// 			gameBoard[i].style.fontWeight = "Bold";
+			// 			break;
+			// 		case "Bystander":
+			// 			gameBoard[i].style.backgroundColor = "Gray";
+			// 			gameBoard[i].style.fontWeight = "Bold";
+			// 			break;
+			// 		case "Assassin":
+			// 			gameBoard[i].style.backgroundColor = "Brown";
+			// 			gameBoard[i].style.fontWeight = "Bold";
+			// 			break;
+			// 	}
+			// }
 		}
 	}
 
@@ -58,7 +89,7 @@ socket.onmessage = (msg) => {
 		document.querySelector("#newGame").addEventListener("click", onEndTurnClick);
 
 		function onEndTurnClick() {
-			sendUpdate(null, true, false);
+			sendUpdate(1, true, false);
 			document.querySelector("#newGame").style.visibility = "hidden";
 		}
 	}
@@ -79,7 +110,7 @@ socket.onmessage = (msg) => {
 
 	var i;
 	for (i = 0; i < gameState["cards"].length; i++) {
-		// changing cards color to reflect game
+		// changing cards color for players
 		if (gameState["cards"][i]["visible"] || gameState["teamName"] == "Spymaster") {
 			switch (gameState["cards"][i]["owner"]) {
 				case "Blue":
@@ -100,12 +131,39 @@ socket.onmessage = (msg) => {
 					break;
 			}
 		}
-
 		// indicate cannot click if not your turn
 		if (gameState["teamName"] != gameState["turn"] || gameState["cards"][i]["visible"] || gameState["hasEnded"]) {
 			gameBoard[i].style.cursor = "not-allowed";
 		}
+		// extracting card owners
+		// if (gameState["cards"][i]["owner"] != "N/A" && cardOwners.length != 25) {
+		// 	// console.log("WEB ----", gameState["cards"][i]["owner"]);
+		// 	cardOwners.push(gameState["cards"][i]["owner"]);
+		// }
+
+		// if (gameState["teamName"] == "Spymaster") {
+		// 	switch (cardOwners[i]) {
+		// 		case "Blue":
+		// 			gameBoard[i].style.backgroundColor = "Blue";
+		// 			gameBoard[i].style.fontWeight = "Bold";
+		// 			break;
+		// 		case "Red":
+		// 			gameBoard[i].style.backgroundColor = "Red";
+		// 			gameBoard[i].style.fontWeight = "Bold";
+		// 			break;
+		// 		case "Bystander":
+		// 			gameBoard[i].style.backgroundColor = "Gray";
+		// 			gameBoard[i].style.fontWeight = "Bold";
+		// 			break;
+		// 		case "Assassin":
+		// 			gameBoard[i].style.backgroundColor = "Brown";
+		// 			gameBoard[i].style.fontWeight = "Bold";
+		// 			break;
+		// 	}
+		// }
 	}
+
+	console.log(cardOwners);
 
 	// adding event listener to cadrds
 	gameBoard[0].addEventListener("click", card1Clicked);
@@ -268,23 +326,25 @@ socket.onmessage = (msg) => {
 function sendUpdate(cardNumber, endTurn, nextGame) {
 	console.log("update");
 
-	let socket = new WebSocket("ws://localhost:8080/api/v1/games/" + window.location.pathname.replace("/", ""));
-	socket.onopen = () => {
-		console.log("Succesfully connected!");
+	// let socket = new WebSocket("ws://localhost:8080/api/v1/games/" + window.location.pathname.replace("/", ""));
 
-		let updateJSON = JSON.stringify({
-			cardClickedNumber: cardNumber,
-			endTurnClicked: endTurn,
-			nextGameInitiated: nextGame,
-		});
+	let updateJSON = JSON.stringify({
+		cardClickedNumber: cardNumber,
+		endTurnClicked: endTurn,
+		nextGameInitiated: nextGame,
+	});
 
-		socket.send(updateJSON);
-		console.log("State Update Sent");
-	};
-	socket.onclose = (event) => {
-		console.log("Socket closed connection", event);
-	};
-	socket.onerror = (error) => {
-		console.log("Socket error: ", error);
-	};
+	socket.send(updateJSON);
+	console.log("State Update Sent");
 }
+
+// let socket = new WebSocket("ws://localhost:8080/api/v1/games/" + window.location.pathname.replace("/", ""));
+// socket.onopen = () => {
+// 	console.log("Succesfully connected!");
+
+// socket.onclose = (event) => {
+// 	console.log("Socket closed connection", event);
+// };
+// socket.onerror = (error) => {
+// 	console.log("Socket error: ", error);
+// };
