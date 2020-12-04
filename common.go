@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 	"sync"
 
@@ -43,6 +41,15 @@ type gameState struct {
 type connectionMap struct {
 	sync.Map
 }
+
+const (
+	redTeam       string = "Red"
+	blueTeam      string = "Blue"
+	spymasterTeam string = "Spymaster"
+
+	bystanderCard string = "Bystander"
+	assassinCard  string = "Assassin"
+)
 
 var connections = &connectionMap{}
 
@@ -88,10 +95,9 @@ func (cm *connectionMap) removeSocketFromList(connectionList []*websocket.Conn, 
 // Delete the given connection from our data structure
 func (cm *connectionMap) deleteConnection(gameID int64, connection *websocket.Conn) {
 	ownerList, socketList, loaded := (*cm).getConnectionList(gameID)
-	fmt.Println("DEL===>", ownerList, socketList)
+
 	// If found anything, delete the websocket and its associated owner from the list
 	if loaded {
-		fmt.Println("Found stuff")
 		for i, actualConnection := range socketList {
 			if actualConnection == connection {
 				newOwners := (*cm).removeOwnerFromList(ownerList, i)
@@ -107,27 +113,14 @@ func (cm *connectionMap) deleteConnection(gameID int64, connection *websocket.Co
 // Adds a connection to the data structure
 func (cm *connectionMap) addConnection(gameID int64, owner []string, sockets []*websocket.Conn) {
 	val := []interface{}{owner, sockets}
-
 	existingVal, loaded := (*cm).LoadOrStore(gameID, val)
-	fmt.Println("ADD===>", existingVal, sockets)
-	// If key already exists, append the current to the existing values
+
+	// If key already exists, append the current connection to the existing values
 	if loaded {
-		fmt.Println("Already exists")
 		storedValueArr := existingVal.([]interface{})
 		newOwners := append(storedValueArr[0].([]string), owner[0])
 		newSockets := append(storedValueArr[1].([]*websocket.Conn), sockets[0])
 		newVal := []interface{}{newOwners, newSockets}
 		(*cm).Store(gameID, newVal)
 	}
-}
-
-func (cm *connectionMap) showAll() {
-	log.Println("\n=============")
-	connections.Range(func(key interface{}, value interface{}) bool {
-		log.Println("\nGameID:", key,
-			"Owners:", value.([]interface{})[0].([]string),
-			"Num Sockets:", len(value.([]interface{})[1].([]*websocket.Conn)))
-		return true
-	})
-	log.Println("xxxxxxxxxxxxx\n")
 }
