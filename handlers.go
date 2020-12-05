@@ -319,9 +319,10 @@ func updateGameByPlayer(update clientUpdate, state *gameState) error {
 				log.Println("error: could not commit transaction:", err)
 				return err
 			}
+		} else {
+			return updateGameForTeam(update, redTeam, blueTeam, state)
 		}
 
-		return updateGameForTeam(update, redTeam, blueTeam, state)
 	} else { // Blue
 		// When end turn is clicked by Blue team
 		if update.EndTurnClicked {
@@ -334,9 +335,11 @@ func updateGameByPlayer(update clientUpdate, state *gameState) error {
 				log.Println("error: could not commit transaction:", err)
 				return err
 			}
+		} else {
+			return updateGameForTeam(update, blueTeam, redTeam, state)
 		}
-		return updateGameForTeam(update, blueTeam, redTeam, state)
 	}
+	return nil
 }
 
 // Send the game state to the client based on who the game owner is
