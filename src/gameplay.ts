@@ -1,21 +1,27 @@
-var gameStat = document.querySelector("#gamestat").querySelectorAll("td");
-document.querySelector("#homeButton").innerHTML = '<a href="/"><img src="../images/homebutton.png">';
-var socket = new WebSocket("ws://localhost:8080/api/v1/games/" + window.location.pathname.replace("/", ""));
+declare const doT: any;
+var gameStat = (<HTMLInputElement>document.querySelector("#gamestat")).querySelectorAll("td");
+
+(<HTMLInputElement>document.querySelector("#homeButton")).innerHTML = '<a href="/"><img src="../images/homebutton.png">';
+
+let socket = new WebSocket("ws://localhost:8080/api/v1/games/" + window.location.pathname.replace("/", ""));
 console.log("Attempting Websocket Connection");
-socket.onopen = function () {
+socket.onopen = () => {
 	console.log("Websocket Succesfully Connected");
 };
-socket.onclose = function (event) {
+socket.onclose = (event) => {
 	console.log("Socket Closed Donnection", event);
 };
-socket.onerror = function (error) {
+socket.onerror = (error) => {
 	console.log("Socket error: ", error);
 };
-socket.onmessage = function (msg) {
+socket.onmessage = (msg) => {
 	var gameState = JSON.parse(msg.data);
+
 	console.log("======================================================");
+
 	console.log("Turn: ", gameState["turn"]);
 	console.log("RECEIVED: ", gameState);
+
 	// setting game stats on the top of the gameboard
 	if (gameState["teamName"] != "Spymaster") {
 		gameStat[0].innerHTML = "<b>Blue</b> - " + gameState["blueCardsRemaining"]; // r1c1
@@ -24,13 +30,16 @@ socket.onmessage = function (msg) {
 	} else {
 		gameStat[1].innerHTML = "<h3>" + gameState["teamName"] + "'s Room</h3><h2> " + gameState["turn"] + "'s Turn </h2>";
 	}
-	// using doT.js to fill in the card labels
-	var template = document.querySelector("#gameplay-template").innerHTML;
+
+    // using doT.js to fill in the card labels
+	var template = (<HTMLInputElement>document.querySelector("#gameplay-template")).innerHTML;
 	var renderedFN = doT.template(template);
 	var renderResult = renderedFN(gameState["cards"]);
-	document.querySelector("#gameplay-filled").innerHTML = renderResult;
+	(<HTMLInputElement>document.querySelector("#gameplay-filled")).innerHTML = renderResult;
+
 	// defining the board
-	var gameBoard = document.querySelector("#gameboard").querySelectorAll("td");
+	var gameBoard = (<HTMLInputElement>document.querySelector("#gameboard")).querySelectorAll("td");
+
 	var i;
 	for (i = 0; i < gameState["cards"].length; i++) {
 		// changing cards color for players
@@ -98,15 +107,20 @@ socket.onmessage = function (msg) {
 				}
 			}
 		}
+
 		// indicate cannot click if not your turn
 		if (gameState["teamName"] != gameState["turn"] || gameState["cards"][i]["visible"] || gameState["hasEnded"]) {
 			gameBoard[i].style.cursor = "not-allowed";
 		}
 	}
-	document.querySelector("#endTurn").style.visibility = "hidden";
-	document.querySelector("#newGame").style.visibility = "hidden";
+
+	(<HTMLInputElement>document.querySelector("#endTurn")).style.visibility = "hidden";
+	(<HTMLInputElement>document.querySelector("#newGame")).style.visibility = "hidden";
+
 	var gameWinner;
+
 	// if the game ended
+
 	// Case 1 - Assassin card clicked durring game play
 	// Turn X, Winner Y
 	//if the gameState indicates ended but there are cards remaining for both teams
@@ -120,10 +134,13 @@ socket.onmessage = function (msg) {
 		gameStat[0].innerHTML = "";
 		gameStat[1].innerHTML = "<h1>" + gameWinner + "<h1>";
 		gameStat[2].innerHTML = "";
-		document.querySelector("#newGame").innerHTML = "New Game";
-		document.querySelector("#newGame").style.visibility = "visible";
-		document.querySelector("#newGame").addEventListener("click", onNewGameClick);
+
+		(<HTMLInputElement>document.querySelector("#newGame")).innerHTML = "New Game";
+		(<HTMLInputElement>document.querySelector("#newGame")).style.visibility = "visible";
+		(<HTMLInputElement>document.querySelector("#newGame")).addEventListener("click", onNewGameClick);
+
 		// end game card reveal
+
 		var i;
 		for (i = 0; i < gameState["cards"].length; i++) {
 			if (gameState["cards"][i]["owner"] != "N/A") {
@@ -156,6 +173,7 @@ socket.onmessage = function (msg) {
 			}
 		}
 	}
+
 	// Case 2 - Player has no cards left
 	// Turn X, Winner X
 	if (gameState["hasEnded"]) {
@@ -165,10 +183,13 @@ socket.onmessage = function (msg) {
 		gameStat[0].innerHTML = "";
 		gameStat[1].innerHTML = "<h1>" + gameWinner + "<h1>";
 		gameStat[2].innerHTML = "";
-		document.querySelector("#newGame").innerHTML = "New Game";
-		document.querySelector("#newGame").style.visibility = "visible";
-		document.querySelector("#newGame").addEventListener("click", onNewGameClick);
+
+		(<HTMLInputElement>document.querySelector("#newGame")).innerHTML = "New Game";
+		(<HTMLInputElement>document.querySelector("#newGame")).style.visibility = "visible";
+		(<HTMLInputElement>document.querySelector("#newGame")).addEventListener("click", onNewGameClick);
+
 		// end game card reveal
+
 		var i;
 		for (i = 0; i < gameState["cards"].length; i++) {
 			if (gameState["cards"][i]["owner"] != "N/A") {
@@ -201,33 +222,38 @@ socket.onmessage = function (msg) {
 			}
 		}
 	}
+
 	function onNewGameClick() {
 		console.log("New Game Button Pressed");
 		sendUpdate(null, null, true);
-		document.querySelector("#newGame").style.visibility = "hidden";
+		(<HTMLInputElement>document.querySelector("#newGame")).style.visibility = "hidden";
 		console.log("New Game Started");
 	}
+
 	// if team on streak and needs to end turn
 	if (gameState["streak"] > 0 && gameState["teamName"] == gameState["turn"]) {
 		console.log("Game Streak Detected! | Streak : ", gameState["streak"]);
-		document.querySelector("#endTurn").innerHTML = "End Turn";
-		document.querySelector("#endTurn").style.visibility = "visible";
-		document.querySelector("#endTurn").addEventListener("click", onEndTurnClick);
+		(<HTMLInputElement>document.querySelector("#endTurn")).innerHTML = "End Turn";
+		(<HTMLInputElement>document.querySelector("#endTurn")).style.visibility = "visible";
+		(<HTMLInputElement>document.querySelector("#endTurn")).addEventListener("click", onEndTurnClick);
+
 		function onEndTurnClick() {
 			console.log("End Turn Button Pressed");
 			var turnBefore = gameState["turn"];
 			sendUpdate(5, true, false);
 			var turnAfter = gameState["turn"];
-			document.querySelector("#endTurn").style.visibility = "hidden";
+			(<HTMLInputElement>document.querySelector("#endTurn")).style.visibility = "hidden";
 			console.log("Turn Ended!");
 		}
 	}
+
 	if (gameState["hasEnded"] && gameState["streak"] > 0) {
 		console.log("GAME ENDED WHILE ON STREAK | Game State: ", gameState["hasEnded"], "Streak: ", gameState["streak"]);
-		document.querySelector("#endTurn").style.visibility = "hidden";
+		(<HTMLInputElement>document.querySelector("#endTurn")).style.visibility = "hidden";
 	} else {
 		console.log("all good | Game State: ", gameState["hasEnded"], "Streak: ", gameState["streak"]);
 	}
+
 	// adding event listener to cadrds
 	gameBoard[0].addEventListener("click", card1Clicked);
 	gameBoard[1].addEventListener("click", card2Clicked);
@@ -254,26 +280,31 @@ socket.onmessage = function (msg) {
 	gameBoard[22].addEventListener("click", card23Clicked);
 	gameBoard[23].addEventListener("click", card24Clicked);
 	gameBoard[24].addEventListener("click", card25Clicked);
+
 	function card1Clicked() {
 		if (gameState["cards"][0]["visible"] == false && gameState["teamName"] == gameState["turn"]) {
 			sendUpdate(1, false, false);
 		}
 	}
+
 	function card2Clicked() {
 		if (gameState["cards"][1]["visible"] == false && gameState["teamName"] == gameState["turn"]) {
 			sendUpdate(2, false, false);
 		}
 	}
+
 	function card3Clicked() {
 		if (gameState["cards"][2]["visible"] == false && gameState["teamName"] == gameState["turn"]) {
 			sendUpdate(3, false, false);
 		}
 	}
+
 	function card4Clicked() {
 		if (gameState["cards"][3]["visible"] == false && gameState["teamName"] == gameState["turn"]) {
 			sendUpdate(4, false, false);
 		}
 	}
+
 	function card5Clicked() {
 		if (gameState["cards"][4]["visible"] == false && gameState["teamName"] == gameState["turn"]) {
 			sendUpdate(5, false, false);
@@ -380,13 +411,16 @@ socket.onmessage = function (msg) {
 		}
 	}
 };
-function sendUpdate(cardNumber, endTurn, nextGame) {
-	var updateJSON = JSON.stringify({
+
+function sendUpdate(cardNumber: any, endTurn: any, nextGame: any) {
+	let updateJSON = JSON.stringify({
 		cardClickedNumber: cardNumber,
 		endTurnClicked: endTurn,
 		nextGameInitiated: nextGame,
 	});
+
 	console.log("SENT: ", updateJSON);
+
 	socket.send(updateJSON);
 	console.log("Update Send Through Web Socket");
 }

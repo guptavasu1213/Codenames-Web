@@ -21,10 +21,8 @@ function onCreateRoomClick() {
 			document.querySelector("#blueLinkText").innerHTML = "Blue Room";
 			document.querySelector("#redLinkText").innerHTML = "Red Room";
 			document.querySelector("#spyLinkText").innerHTML = "Spy Room";
-
 			document.querySelector("#blueLink").innerHTML = blueLink;
 			document.querySelector("#blueLink").addEventListener("click", onBlueLinkClick);
-
 			function onBlueLinkClick(event) {
 				var copyLink = document.createElement("input");
 				copyLink.setAttribute("value", document.querySelector("#blueLink").innerHTML);
@@ -43,7 +41,6 @@ function onCreateRoomClick() {
 			}
 			document.querySelector("#redLink").innerHTML = redLink;
 			document.querySelector("#redLink").addEventListener("click", onRedLinkClick);
-
 			function onRedLinkClick(event) {
 				var copyLink = document.createElement("input");
 				copyLink.setAttribute("value", document.querySelector("#redLink").innerHTML);
@@ -60,10 +57,9 @@ function onCreateRoomClick() {
 					}, 200);
 				}
 			}
-
 			document.querySelector("#spyLink").innerHTML = spyLink;
 			document.querySelector("#spyLink").addEventListener("click", onSpyLinkClick);
-			function onSpyLinkClick() {
+			function onSpyLinkClick(event) {
 				var copyLink = document.createElement("input");
 				copyLink.setAttribute("value", document.querySelector("#spyLink").innerHTML);
 				document.body.appendChild(copyLink);
@@ -79,7 +75,6 @@ function onCreateRoomClick() {
 					}, 200);
 				}
 			}
-
 			document.querySelector("#hint").innerHTML = "Click on the room code to copy the link!<br>Then paste it to your friends!<br>Then click home and join the room!<br><br>Option-Click on the room code to open room in a new window!";
 			document.querySelector("#createLink").style.display = "none";
 			document.querySelector("#joinLink").style.display = "none";
