@@ -129,22 +129,22 @@ body {
 #blueLinkText {
 	font-family: linkFont;
 	text-align: center;
-	color: white;
-	font-size: 30px;
+	color: #3498DB;
+	font-size: 50px;
 }
 
 #redLinkText {
 	font-family: linkFont;
 	text-align: center;
-	color: white;
-	font-size: 30px;
+	color: #E74C3C;
+	font-size: 50px;
 }
 
 #spyLinkText {
 	font-family: linkFont;
 	text-align: center;
-	color: white;
-	font-size: 30px;
+	color: #41d241;
+	font-size: 50px;
 }
 
 #hint {
