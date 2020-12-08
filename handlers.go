@@ -22,6 +22,7 @@ func handlerToRetrieveHomePage(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Extract randomly 25 words from wordlists
 func createWordList() []string {
 	wordList := []string{}
 	pickList := []string{}
@@ -52,6 +53,7 @@ func createWordList() []string {
 	return pickList
 }
 
+// Make a shuffled 25-cards list with random extra card for red or blue
 func createCardList(numb int) []string {
 	var red, blue int
 	if numb == 0 {
@@ -82,6 +84,7 @@ func createCardList(numb int) []string {
 	return cardList
 }
 
+// Generate a random heximal as string
 func randomHex(n int) (string, error) {
 	bytes := make([]byte, n)
 	if _, err := rand.Read(bytes); err != nil {
