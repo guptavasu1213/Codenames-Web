@@ -9,11 +9,13 @@
 .blueCard-gameEnded-noOwner {
 	color: #3498db;
 	font-weight: 950;
+	background-color: white;
 }
 
 .blueCard-gameEnded-cardVisible {
 	background-color: #3498db;
 	color: Black;
+	font-weight: Bold;
 }
 
 .blueCard-gameAlive-spymaster-cardVisible {
@@ -39,11 +41,13 @@
 .redCard-gameEnded-noOwner {
 	color: #e74c3c;
 	font-weight: 950;
+	background-color: white;
 }
 
 .redCard-gameEnded-cardVisible {
 	background-color: #e74c3c;
 	color: Black;
+	font-weight: Bold;
 }
 
 .redCard-gameAlive-spymaster-cardVisible {
@@ -69,11 +73,13 @@
 .bystanderCard-gameEnded-noOwner {
 	color: #95a5a6;
 	font-weight: 950;
+	background-color: white;
 }
 
 .bystanderCard-gameEnded-cardVisible {
 	background-color: #95a5a6;
 	color: Black;
+	font-weight: Bold;
 }
 
 .bystanderCard-gameAlive-spymaster-cardVisible {
@@ -99,11 +105,13 @@
 .assassinCard-gameEnded-noOwner {
 	color: #17202a;
 	font-weight: 950;
+	background-color: white;
 }
 
 .assassinCard-gameEnded-cardVisible {
 	background-color: #17202a;
-	color: Black;
+	color: white;
+	font-weight: Bold;
 }
 
 .assassinCard-gameAlive-spymaster-cardVisible {
@@ -122,10 +130,14 @@
 	font-weight: Bold;
 }
 
-/* ------- */
-/* DEFAULT */
-/* ------- */
+/* ----- */
+/* OTHER */
+/* ----- */
 
 .defaultClass {
 	background-color: white;
+}
+
+.notAllowedCursor {
+	cursor: not-allowed;
 }
