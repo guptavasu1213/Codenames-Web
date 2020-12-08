@@ -1,6 +1,3 @@
-// stores the table that displays the stats of the game
-var gameStat = (<HTMLInputElement>document.querySelector("#gamestat")).querySelectorAll("td");
-
 // stores gameState data received from web socket
 var gameState: any;
 

@@ -1,7 +1,6 @@
 "use strict";
 var gameStat = document.querySelector("#gamestat").querySelectorAll("td");
 var gameState;
-document.querySelector("#homeButton").innerHTML = '<a href="/"><img src="../images/homebutton.png">';
 var socket = new WebSocket("ws://localhost:8080/api/v1/games/" + window.location.pathname.replace("/", ""));
 console.log("Attempting Websocket Connection");
 socket.onopen = function () {
@@ -119,90 +118,44 @@ function addEventListeners(gameState, gameBoard) {
 	}
 	console.log("Event Listeners Added");
 }
+
+function addClassToCard(i, gameState, gameBoard, gameEndedNoOwner, gameEndedCardVisible, spymasterCardVisible, spymasterCardNotVisible, gameAliveNotSpymaster) {
+	if (gameState["hasEnded"]) {
+		if (gameState["cards"][i]["owner"] != "N/A") {
+			gameBoard[i].className = gameEndedNoOwner;
+		}
+		if (gameState["cards"][i]["visible"]) {
+			gameBoard[i].className = gameEndedCardVisible;
+		}
+	} else {
+		if (gameState["teamName"] == "Spymaster") {
+			if (gameState["cards"][i]["visible"]) {
+				gameBoard[i].className = spymasterCardVisible;
+			} else {
+				gameBoard[i].className = spymasterCardNotVisible;
+			}
+		} else {
+			gameBoard[i].className = gameAliveNotSpymaster;
+		}
+	}
+}
+
 function styleCards(gameState, gameBoard) {
 	var i;
 	for (i = 0; i < gameState["cards"].length; i++) {
 		gameBoard[i].className = "defaultClass";
 		switch (gameState["cards"][i]["owner"]) {
 			case "Blue":
-				if (gameState["hasEnded"]) {
-					if (gameState["cards"][i]["owner"] != "N/A") {
-						gameBoard[i].className = "blueCard-gameEnded-noOwner";
-					}
-					if (gameState["cards"][i]["visible"]) {
-						gameBoard[i].className = "blueCard-gameEnded-cardVisible";
-					}
-				} else {
-					if (gameState["teamName"] == "Spymaster") {
-						if (gameState["cards"][i]["visible"]) {
-							gameBoard[i].className = "blueCard-gameAlive-spymaster-cardVisible";
-						} else {
-							gameBoard[i].className = "blueCard-gameAlive-spymaster-cardNotVisible";
-						}
-					} else {
-						gameBoard[i].className = "blueCard-gameAlive-notSpymaster";
-					}
-				}
+				addClassToCard(i, gameState, gameBoard, "blueCard-gameEnded-noOwner", "blueCard-gameEnded-cardVisible", "blueCard-gameAlive-spymaster-cardVisible", "blueCard-gameAlive-spymaster-cardNotVisible", "blueCard-gameAlive-notSpymaster");
 				break;
 			case "Red":
-				if (gameState["hasEnded"]) {
-					if (gameState["cards"][i]["owner"] != "N/A") {
-						gameBoard[i].className = "redCard-gameEnded-noOwner";
-					}
-					if (gameState["cards"][i]["visible"]) {
-						gameBoard[i].className = "redCard-gameEnded-cardVisible";
-					}
-				} else {
-					if (gameState["teamName"] == "Spymaster") {
-						if (gameState["cards"][i]["visible"]) {
-							gameBoard[i].className = "redCard-gameAlive-spymaster-cardVisible";
-						} else {
-							gameBoard[i].className = "redCard-gameAlive-spymaster-cardNotVisible";
-						}
-					} else {
-						gameBoard[i].className = "redCard-gameAlive-notSpymaster";
-					}
-				}
+				addClassToCard(i, gameState, gameBoard, "redCard-gameEnded-noOwner", "redCard-gameEnded-cardVisible", "redCard-gameAlive-spymaster-cardVisible", "redCard-gameAlive-spymaster-cardNotVisible", "redCard-gameAlive-notSpymaster");
 				break;
 			case "Bystander":
-				if (gameState["hasEnded"]) {
-					if (gameState["cards"][i]["owner"] != "N/A") {
-						gameBoard[i].className = "bystanderCard-gameEnded-noOwner";
-					}
-					if (gameState["cards"][i]["visible"]) {
-						gameBoard[i].className = "bystanderCard-gameEnded-cardVisible";
-					}
-				} else {
-					if (gameState["teamName"] == "Spymaster") {
-						if (gameState["cards"][i]["visible"]) {
-							gameBoard[i].className = "bystanderCard-gameAlive-spymaster-cardVisible";
-						} else {
-							gameBoard[i].className = "bystanderCard-gameAlive-spymaster-cardNotVisible";
-						}
-					} else {
-						gameBoard[i].className = "bystanderCard-gameAlive-notSpymaster";
-					}
-				}
+				addClassToCard(i, gameState, gameBoard, "bystanderCard-gameEnded-noOwner", "bystanderCard-gameEnded-cardVisible", "bystanderCard-gameAlive-spymaster-cardVisible", "bystanderCard-gameAlive-spymaster-cardNotVisible", "bystanderCard-gameAlive-notSpymaster");
 				break;
 			case "Assassin":
-				if (gameState["hasEnded"]) {
-					if (gameState["cards"][i]["owner"] != "N/A") {
-						gameBoard[i].className = "assassinCard-gameEnded-noOwner";
-					}
-					if (gameState["cards"][i]["visible"]) {
-						gameBoard[i].className = "assassinCard-gameEnded-cardVisible";
-					}
-				} else {
-					if (gameState["teamName"] == "Spymaster") {
-						if (gameState["cards"][i]["visible"]) {
-							gameBoard[i].className = "assassinCard-gameAlive-spymaster-cardVisible";
-						} else {
-							gameBoard[i].className = "assassinCard-gameAlive-spymaster-cardNotVisible";
-						}
-					} else {
-						gameBoard[i].className = "assassinCard-gameAlive-notSpymaster";
-					}
-				}
+				addClassToCard(i, gameState, gameBoard, "assassinCard-gameEnded-noOwner", "assassinCard-gameEnded-cardVisible", "assassinCard-gameAlive-spymaster-cardVisible", "assassinCard-gameAlive-spymaster-cardNotVisible", "assassinCard-gameAlive-notSpymaster");
 				break;
 		}
 		if (gameState["teamName"] != gameState["turn"] || gameState["cards"][i]["visible"] || gameState["hasEnded"]) {
