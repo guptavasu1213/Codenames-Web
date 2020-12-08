@@ -83,6 +83,7 @@ func createNewGame(redCode string, blueCode string, spyCode string) (int64, erro
 	colour := [3]string{redTeam, blueTeam, spymasterTeam}
 	count := [3]int{redCardCount, blueCardCount, 0}
 
+	// Insert new game to games table in the database
 	query := `INSERT INTO games (epoch, current_turn, streak, has_ended) VALUES ($1, $2, $3, $4)`
 	result, err := tx.Exec(query, now, first, 0, 0)
 	if err != nil {
@@ -91,6 +92,7 @@ func createNewGame(redCode string, blueCode string, spyCode string) (int64, erro
 		return 0, err
 	}
 
+	// Retrieve the gameID for reference key later
 	id, err := result.LastInsertId()
 	if err != nil {
 		log.Println("failed to get ID", err)
@@ -98,6 +100,7 @@ func createNewGame(redCode string, blueCode string, spyCode string) (int64, erro
 		return 0, err
 	}
 
+	// Insert 3 team codes with gameID
 	query = `INSERT INTO teams (game_id, team_code, owner, cards_remaining) VALUES ($1, $2, $3, $4)`
 	for i := 0; i < 3; i++ {
 		_, err = tx.Exec(query, id, codes[i], colour[i], count[i])
@@ -108,6 +111,7 @@ func createNewGame(redCode string, blueCode string, spyCode string) (int64, erro
 		}
 	}
 
+	// Insert 25 cards with gameID
 	query = `INSERT INTO cards (game_id, card_number, label, owner, visibility) VALUES ($1, $2, $3, $4, $5)`
 	for i := 0; i < 25; i++ {
 		result, err = tx.Exec(query, id, i+1, wordList[i], cardList[i], 0)
