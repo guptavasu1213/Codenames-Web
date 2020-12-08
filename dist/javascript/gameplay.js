@@ -162,34 +162,40 @@ function addEventListeners(gameState, gameBoard) {
 function styleCards(gameState, gameBoard) {
 	var i;
 	for (i = 0; i < gameState["cards"].length; i++) {
+		gameBoard[i].className = "defaultClass";
+
 		switch (gameState["cards"][i]["owner"]) {
 			//##################################################################
 			case "Blue":
 				if (gameState["hasEnded"]) {
 					if (gameState["cards"][i]["owner"] != "N/A") {
-						gameBoard[i].style.color = "#3498DB";
-						gameBoard[i].style.fontWeight = "950";
+						// blueCard-gameEnded-noOwner
+						gameBoard[i].className = "blueCard-gameEnded-noOwner";
+						// gameBoard[i].style.color = "#3498DB";
+						// gameBoard[i].style.fontWeight = "950";
 					}
 					if (gameState["cards"][i]["visible"]) {
-						gameBoard[i].style.backgroundColor = "#3498DB";
-						gameBoard[i].style.color = "Black";
+						gameBoard[i].className = "blueCard-gameEnded-cardVisible";
+						// gameBoard[i].style.backgroundColor = "#3498DB";
+						// gameBoard[i].style.color = "Black";
 					}
 				} else {
 					// spymaster team
 					if (gameState["teamName"] == "Spymaster") {
-						// card visible
 						if (gameState["cards"][i]["visible"]) {
-							gameBoard[i].style.backgroundColor = "#3498DB";
-							gameBoard[i].style.fontWeight = "Bold";
-							// card not visible
+							gameBoard[i].className = "blueCard-gameAlive-spymaster-cardVisible";
+							// gameBoard[i].style.backgroundColor = "#3498DB";
+							// gameBoard[i].style.fontWeight = "Bold";
 						} else {
-							gameBoard[i].style.color = "#3498DB";
-							gameBoard[i].style.fontWeight = "950";
+							gameBoard[i].className = "blueCard-gameAlive-spymaster-cardNotVisible";
+							// gameBoard[i].style.color = "#3498DB";
+							// gameBoard[i].style.fontWeight = "950";
 						}
 						// not spymaster team
 					} else {
-						gameBoard[i].style.backgroundColor = "#3498DB";
-						gameBoard[i].style.fontWeight = "Bold";
+						gameBoard[i].className = "blueCard-gameAlive-notSpymaster";
+						// gameBoard[i].style.backgroundColor = "#3498DB";
+						// gameBoard[i].style.fontWeight = "Bold";
 					}
 				}
 				break;
@@ -198,29 +204,32 @@ function styleCards(gameState, gameBoard) {
 			case "Red":
 				if (gameState["hasEnded"]) {
 					if (gameState["cards"][i]["owner"] != "N/A") {
-						gameBoard[i].style.color = "#E74C3C";
-						gameBoard[i].style.fontWeight = "950";
+						gameBoard[i].className = "redCard-gameEnded-noOwner";
+						// gameBoard[i].style.color = "#E74C3C";
+						// gameBoard[i].style.fontWeight = "950";
 					}
 					if (gameState["cards"][i]["visible"]) {
-						gameBoard[i].style.backgroundColor = "#E74C3C";
-						gameBoard[i].style.color = "Black";
+						gameBoard[i].className = "redCard-gameEnded-cardVisible";
+						// gameBoard[i].style.backgroundColor = "#E74C3C";
+						// gameBoard[i].style.color = "Black";
 					}
 				} else {
 					// spymaster team
 					if (gameState["teamName"] == "Spymaster") {
-						// card visible
 						if (gameState["cards"][i]["visible"]) {
-							gameBoard[i].style.backgroundColor = "#E74C3C";
-							gameBoard[i].style.fontWeight = "Bold";
-							// card not visible
+							gameBoard[i].className = "redCard-gameAlive-spymaster-cardVisible";
+							// gameBoard[i].style.backgroundColor = "#E74C3C";
+							// gameBoard[i].style.fontWeight = "Bold";
 						} else {
-							gameBoard[i].style.color = "#E74C3C";
-							gameBoard[i].style.fontWeight = "950";
+							gameBoard[i].className = "redCard-gameAlive-spymaster-cardNotVisible";
+							// gameBoard[i].style.color = "#E74C3C";
+							// gameBoard[i].style.fontWeight = "950";
 						}
 						// not spymaster team
 					} else {
-						gameBoard[i].style.backgroundColor = "#E74C3C";
-						gameBoard[i].style.fontWeight = "Bold";
+						gameBoard[i].className = "redCard-gameAlive-notSpymaster";
+						// gameBoard[i].style.backgroundColor = "#E74C3C";
+						// gameBoard[i].style.fontWeight = "Bold";
 					}
 				}
 				break;
@@ -229,29 +238,33 @@ function styleCards(gameState, gameBoard) {
 			case "Bystander":
 				if (gameState["hasEnded"]) {
 					if (gameState["cards"][i]["owner"] != "N/A") {
-						gameBoard[i].style.color = "#95A5A6";
-						gameBoard[i].style.fontWeight = "950";
+						gameBoard[i].className = "bystanderCard-gameEnded-noOwner";
+						// gameBoard[i].style.color = "#95A5A6";
+						// gameBoard[i].style.fontWeight = "950";
 					}
 					if (gameState["cards"][i]["visible"]) {
-						gameBoard[i].style.backgroundColor = "#95A5A6";
-						gameBoard[i].style.color = "Black";
+						gameBoard[i].className = "bystanderCard-gameEnded-cardVisible";
+						// gameBoard[i].style.backgroundColor = "#95A5A6";
+						// gameBoard[i].style.color = "Black";
 					}
 				} else {
 					// spymaster team
 					if (gameState["teamName"] == "Spymaster") {
-						// card visible
 						if (gameState["cards"][i]["visible"]) {
-							gameBoard[i].style.backgroundColor = "#95A5A6";
-							gameBoard[i].style.fontWeight = "Bold";
+							gameBoard[i].className = "bystanderCard-gameAlive-spymaster-cardVisible";
+							// gameBoard[i].style.backgroundColor = "#95A5A6";
+							// gameBoard[i].style.fontWeight = "Bold";
 							// card not visible
 						} else {
-							gameBoard[i].style.color = "#95A5A6";
-							gameBoard[i].style.fontWeight = "950";
+							gameBoard[i].className = "bystanderCard-gameAlive-spymaster-cardNotVisible";
+							// gameBoard[i].style.color = "#95A5A6";
+							// gameBoard[i].style.fontWeight = "950";
 						}
 						// not spymaster team
 					} else {
-						gameBoard[i].style.backgroundColor = "#95A5A6";
-						gameBoard[i].style.fontWeight = "Bold";
+						gameBoard[i].className = "bystanderCard-gameAlive-notSpymaster";
+						// gameBoard[i].style.backgroundColor = "#95A5A6";
+						// gameBoard[i].style.fontWeight = "Bold";
 					}
 				}
 				break;
@@ -260,30 +273,33 @@ function styleCards(gameState, gameBoard) {
 			case "Assassin":
 				if (gameState["hasEnded"]) {
 					if (gameState["cards"][i]["owner"] != "N/A") {
-						gameBoard[i].style.color = "#17202A";
-						gameBoard[i].style.fontWeight = "950";
+						gameBoard[i].className = "assassinCard-gameEnded-noOwner";
+						// gameBoard[i].style.color = "#17202A";
+						// gameBoard[i].style.fontWeight = "950";
 					}
 					if (gameState["cards"][i]["visible"]) {
-						gameBoard[i].style.backgroundColor = "#17202A";
-						gameBoard[i].style.color = "White";
+						gameBoard[i].className = "assassinCard-gameEnded-cardVisible";
+						// gameBoard[i].style.backgroundColor = "#17202A";
+						// gameBoard[i].style.color = "White";
 					}
 				} else {
 					// spymaster team
 					if (gameState["teamName"] == "Spymaster") {
-						// card visible
 						if (gameState["cards"][i]["visible"]) {
-							gameBoard[i].style.backgroundColor = "#17202A";
-							gameBoard[i].style.color = "White";
-							gameBoard[i].style.fontWeight = "Bold";
-							// card not visible
+							gameBoard[i].className = "assassinCard-gameAlive-spymaster-cardVisible";
+							// gameBoard[i].style.backgroundColor = "#17202A";
+							// gameBoard[i].style.color = "White";
+							// gameBoard[i].style.fontWeight = "Bold";
 						} else {
-							gameBoard[i].style.color = "#17202A";
-							gameBoard[i].style.fontWeight = "950";
+							gameBoard[i].className = "assassinCard-gameAlive-spymaster-cardNotVisible";
+							// gameBoard[i].style.color = "#17202A";
+							// gameBoard[i].style.fontWeight = "950";
 						}
 						// not spymaster team
 					} else {
-						gameBoard[i].style.backgroundColor = "#17202A";
-						gameBoard[i].style.fontWeight = "Bold";
+						gameBoard[i].className = "assassinCard-gameAlive-notSpymaster";
+						// gameBoard[i].style.backgroundColor = "#17202A";
+						// gameBoard[i].style.fontWeight = "Bold";
 					}
 				}
 				break;
@@ -296,3 +312,6 @@ function styleCards(gameState, gameBoard) {
 	}
 	console.log("Cards Styled");
 }
+
+// var gameS = document.querySelector("#gamestat").querySelectorAll("td");
+// gameS[0].className = "blueCard-gameAlive-spymaster-cardVisible";

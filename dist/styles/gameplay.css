@@ -58,7 +58,7 @@ body {
 }
 
 #gameboard td {
-	background-color: white;
+	/* background-color: white; */
 	height: 100px;
 	text-align: center;
 	cursor: pointer;

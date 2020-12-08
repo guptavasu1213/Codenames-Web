@@ -1,0 +1,131 @@
+/* =================================================== */
+/* Card Styling */
+/* =================================================== */
+
+/* ---- */
+/* BLUE */
+/* ---- */
+
+.blueCard-gameEnded-noOwner {
+	color: #3498db;
+	font-weight: 950;
+}
+
+.blueCard-gameEnded-cardVisible {
+	background-color: #3498db;
+	color: Black;
+}
+
+.blueCard-gameAlive-spymaster-cardVisible {
+	background-color: #3498db;
+	font-weight: Bold;
+}
+
+.blueCard-gameAlive-spymaster-cardNotVisible {
+	color: #3498db;
+	font-weight: 950;
+	background-color: white;
+}
+
+.blueCard-gameAlive-notSpymaster {
+	background-color: #3498db;
+	font-weight: Bold;
+}
+
+/* --- */
+/* RED */
+/* --- */
+
+.redCard-gameEnded-noOwner {
+	color: #e74c3c;
+	font-weight: 950;
+}
+
+.redCard-gameEnded-cardVisible {
+	background-color: #e74c3c;
+	color: Black;
+}
+
+.redCard-gameAlive-spymaster-cardVisible {
+	background-color: #e74c3c;
+	font-weight: Bold;
+}
+
+.redCard-gameAlive-spymaster-cardNotVisible {
+	color: #e74c3c;
+	font-weight: 950;
+	background-color: white;
+}
+
+.redCard-gameAlive-notSpymaster {
+	background-color: #e74c3c;
+	font-weight: Bold;
+}
+
+/* --------- */
+/* BYSTANDER */
+/* --------- */
+
+.bystanderCard-gameEnded-noOwner {
+	color: #95a5a6;
+	font-weight: 950;
+}
+
+.bystanderCard-gameEnded-cardVisible {
+	background-color: #95a5a6;
+	color: Black;
+}
+
+.bystanderCard-gameAlive-spymaster-cardVisible {
+	background-color: #95a5a6;
+	font-weight: Bold;
+}
+
+.bystanderCard-gameAlive-spymaster-cardNotVisible {
+	color: #95a5a6;
+	font-weight: 950;
+	background-color: white;
+}
+
+.bystanderCard-gameAlive-notSpymaster {
+	background-color: #95a5a6;
+	font-weight: Bold;
+}
+
+/* -------- */
+/* ASSASSIN */
+/* -------- */
+
+.assassinCard-gameEnded-noOwner {
+	color: #17202a;
+	font-weight: 950;
+}
+
+.assassinCard-gameEnded-cardVisible {
+	background-color: #17202a;
+	color: Black;
+}
+
+.assassinCard-gameAlive-spymaster-cardVisible {
+	background-color: #17202a;
+	font-weight: Bold;
+}
+
+.assassinCard-gameAlive-spymaster-cardNotVisible {
+	color: #17202a;
+	font-weight: 950;
+	background-color: white;
+}
+
+.assassinCard-gameAlive-notSpymaster {
+	background-color: #17202a;
+	font-weight: Bold;
+}
+
+/* ------- */
+/* DEFAULT */
+/* ------- */
+
+.defaultClass {
+	background-color: white;
+}
