@@ -1,17 +1,9 @@
-// stores gameState data received from web socket
+"use strict";
+var gameStat = 	(<HTMLInputElement>document.querySelector("#gamestat")).querySelectorAll("td");
 var gameState: any;
-
-// declaring doT as any
 declare const doT: any;
-
-// adds the home button to the gameplay screen
-(<HTMLInputElement>document.querySelector("#homeButton")).innerHTML = '<a href="/"><img src="../images/homebutton.png">';
-
-// stores the web socket created to exchange data
 var socket = new WebSocket("ws://localhost:8080/api/v1/games/" + window.location.pathname.replace("/", ""));
-
 console.log("Attempting Websocket Connection");
-
 socket.onopen = function () {
 	console.log("Websocket Succesfully Connected");
 };
@@ -23,50 +15,27 @@ socket.onerror = function (error) {
 };
 socket.onmessage = function (msg) {
 	gameState = JSON.parse(msg.data);
-
-	// clearning button residue
 	(<HTMLInputElement>document.querySelector("#endTurn")).style.visibility = "hidden";
 	(<HTMLInputElement>document.querySelector("#newGame")).style.visibility = "hidden";
-
-	// loggin the player turn and data received by socket
 	logTurnAndData();
-
-	// using doT.js to fill in the card labels
 	addCardLabels(gameState["cards"]);
-
-	// updating game stats on top of the game board
 	updateGameStats(gameState);
-
-	// defining the board
-	var gameBoard = (<HTMLInputElement>document.querySelector("#gameboard")).querySelectorAll("td");
-
-	// styling cards accoding to visibility and owners
+	var gameBoard = 	(<HTMLInputElement>document.querySelector("#gameboard")).querySelectorAll("td");
 	styleCards(gameState, gameBoard);
-
-	// adding event listeners to cards
 	addEventListeners(gameState, gameBoard);
-
 	if (gameState["hasEnded"]) {
 		gameEnded();
 	}
-
-	// if team on streak and needs to end turn
 	if (gameState["streak"] > 0 && gameState["teamName"] == gameState["turn"]) {
 		gameStreak();
 	}
 };
-
-//####################################################################################
-// Helped Functions
-//####################################################################################
-
 function logTurnAndData() {
 	console.log("======================================================");
 	console.log("Turn: ", gameState["turn"]);
 	console.log("RECEIVED: ", gameState);
 	console.log("Turn and Socket Data logged");
 }
-
 function sendUpdate(cardNumber: any, endTurn: any, nextGame: any) {
 	var updateJSON = JSON.stringify({
 		cardClickedNumber: cardNumber,
@@ -77,29 +46,25 @@ function sendUpdate(cardNumber: any, endTurn: any, nextGame: any) {
 	socket.send(updateJSON);
 	console.log("Update Send Through Web Socket");
 }
-
 function addCardLabels(gameState: any) {
-	var template = (<HTMLInputElement>document.querySelector("#gameplay-template")).innerHTML;
+	var template = 	(<HTMLInputElement>document.querySelector("#gameplay-template")).innerHTML;
 	var renderedFN = doT.template(template);
 	var renderResult = renderedFN(gameState);
 	(<HTMLInputElement>document.querySelector("#gameplay-filled")).innerHTML = renderResult;
 	console.log("Card Labels Added");
 }
-
 function updateGameStats(gameState: any) {
-	gameStat[0].innerHTML = "<b>Blue</b> - " + gameState["blueCardsRemaining"]; // r1c1
+	gameStat[0].innerHTML = "<b>Blue</b> - " + gameState["blueCardsRemaining"];
 	gameStat[1].innerHTML = "<h3>" + gameState["teamName"] + "'s Room</h3><h2> " + gameState["turn"] + "'s Turn </h2>";
-	gameStat[2].innerHTML = "<b>Red</b> - " + gameState["redCardsRemaining"]; // r1c3
+	gameStat[2].innerHTML = "<b>Red</b> - " + gameState["redCardsRemaining"];
 	console.log("Game Stats Updated");
 }
-
 function onNewGameClick() {
 	sendUpdate(null, null, true);
 	(<HTMLInputElement>document.querySelector("#newGame")).style.visibility = "hidden";
 	console.log("New Game Button Pressed");
 	(<HTMLInputElement>document.querySelector("#newGame")).style.visibility = "hidden";
 }
-
 function onEndTurnClick() {
 	console.log("End Turn Button Pressed");
 	var turnBefore = gameState["turn"];
@@ -108,7 +73,6 @@ function onEndTurnClick() {
 	(<HTMLInputElement>document.querySelector("#endTurn")).style.visibility = "hidden";
 	console.log("End Turn Button Pressed");
 }
-
 function gameStreak() {
 	console.log("Game Streak Detected! | Streak : ", gameState["streak"]);
 	(<HTMLInputElement>document.querySelector("#endTurn")).innerHTML = "End Turn";
@@ -118,7 +82,6 @@ function gameStreak() {
 		(<HTMLInputElement>document.querySelector("#endTurn")).style.visibility = "hidden";
 	}
 }
-
 function gameEnded() {
 	var gameWinner;
 	if (gameState["blueCardsRemaining"] > 0 && gameState["redCardsRemaining"] > 0) {
@@ -129,12 +92,10 @@ function gameEnded() {
 			gameWinner = "Blue Team Won";
 		}
 	}
-
 	if (gameState["blueCardsRemaining"] == 0 || gameState["redCardsRemaining"] == 0) {
 		gameWinner = gameState["turn"] + " Team Won";
 		console.log("Game Ended - Caused by No remaining Card");
 	}
-
 	gameStat[0].innerHTML = "";
 	gameStat[1].innerHTML = "<h1>" + gameWinner + "<h1>";
 	gameStat[2].innerHTML = "";
@@ -142,12 +103,10 @@ function gameEnded() {
 	(<HTMLInputElement>document.querySelector("#newGame")).style.visibility = "visible";
 	(<HTMLInputElement>document.querySelector("#newGame")).addEventListener("click", onNewGameClick);
 }
-
 function addEventListeners(gameState: any, gameBoard: any) {
 	var i;
 	for (i = 0; i < 25; i++) {
 		let j = i;
-
 		gameBoard[i].addEventListener(
 			"click",
 			function (event: any) {
@@ -161,115 +120,52 @@ function addEventListeners(gameState: any, gameBoard: any) {
 	console.log("Event Listeners Added");
 }
 
-function styleCards(gameState: any, gameBoard:any) {
+function addClassToCard(i: number, gameState: any, gameBoard: any, gameEndedNoOwner: string, gameEndedCardVisible: string, spymasterCardVisible: string, spymasterCardNotVisible: string, gameAliveNotSpymaster: string) {
+	if (gameState["hasEnded"]) {
+		if (gameState["cards"][i]["owner"] != "N/A") {
+			gameBoard[i].className = gameEndedNoOwner;
+		}
+		if (gameState["cards"][i]["visible"]) {
+			gameBoard[i].className = gameEndedCardVisible;
+		}
+	} else {
+		if (gameState["teamName"] == "Spymaster") {
+			if (gameState["cards"][i]["visible"]) {
+				gameBoard[i].className = spymasterCardVisible;
+			} else {
+				gameBoard[i].className = spymasterCardNotVisible;
+			}
+		} else {
+			gameBoard[i].className = gameAliveNotSpymaster;
+		}
+	}
+}
+
+function styleCards(gameState: any, gameBoard: any) {
 	var i;
 	for (i = 0; i < gameState["cards"].length; i++) {
 		gameBoard[i].className = "defaultClass";
-
 		switch (gameState["cards"][i]["owner"]) {
-			//##################################################################
 			case "Blue":
-				if (gameState["hasEnded"]) {
-					if (gameState["cards"][i]["owner"] != "N/A") {
-						gameBoard[i].className = "blueCard-gameEnded-noOwner";
-					}
-					if (gameState["cards"][i]["visible"]) {
-						gameBoard[i].className = "blueCard-gameEnded-cardVisible";
-					}
-				} else {
-					// spymaster team
-					if (gameState["teamName"] == "Spymaster") {
-						if (gameState["cards"][i]["visible"]) {
-							gameBoard[i].className = "blueCard-gameAlive-spymaster-cardVisible";
-						} else {
-							gameBoard[i].className = "blueCard-gameAlive-spymaster-cardNotVisible";
-						}
-						// not spymaster team
-					} else {
-						gameBoard[i].className = "blueCard-gameAlive-notSpymaster";
-					}
-				}
+				addClassToCard(i, gameState, gameBoard, "blueCard-gameEnded-noOwner", "blueCard-gameEnded-cardVisible", "blueCard-gameAlive-spymaster-cardVisible", "blueCard-gameAlive-spymaster-cardNotVisible", "blueCard-gameAlive-notSpymaster");
 				break;
-
-			//##################################################################
 			case "Red":
-				if (gameState["hasEnded"]) {
-					if (gameState["cards"][i]["owner"] != "N/A") {
-						gameBoard[i].className = "redCard-gameEnded-noOwner";
-					}
-					if (gameState["cards"][i]["visible"]) {
-						gameBoard[i].className = "redCard-gameEnded-cardVisible";
-					}
-				} else {
-					// spymaster team
-					if (gameState["teamName"] == "Spymaster") {
-						if (gameState["cards"][i]["visible"]) {
-							gameBoard[i].className = "redCard-gameAlive-spymaster-cardVisible";
-						} else {
-							gameBoard[i].className = "redCard-gameAlive-spymaster-cardNotVisible";
-						}
-						// not spymaster team
-					} else {
-						gameBoard[i].className = "redCard-gameAlive-notSpymaster";
-					}
-				}
+				addClassToCard(i, gameState, gameBoard, "redCard-gameEnded-noOwner", "redCard-gameEnded-cardVisible", "redCard-gameAlive-spymaster-cardVisible", "redCard-gameAlive-spymaster-cardNotVisible", "redCard-gameAlive-notSpymaster");
 				break;
-
-			//##################################################################
 			case "Bystander":
-				if (gameState["hasEnded"]) {
-					if (gameState["cards"][i]["owner"] != "N/A") {
-						gameBoard[i].className = "bystanderCard-gameEnded-noOwner";
-					}
-					if (gameState["cards"][i]["visible"]) {
-						gameBoard[i].className = "bystanderCard-gameEnded-cardVisible";
-					}
-				} else {
-					// spymaster team
-					if (gameState["teamName"] == "Spymaster") {
-						if (gameState["cards"][i]["visible"]) {
-							gameBoard[i].className = "bystanderCard-gameAlive-spymaster-cardVisible";
-						} else {
-							gameBoard[i].className = "bystanderCard-gameAlive-spymaster-cardNotVisible";
-						}
-						// not spymaster team
-					} else {
-						gameBoard[i].className = "bystanderCard-gameAlive-notSpymaster";
-						// gameBoard[i].style.backgroundColor = "#95A5A6";
-						// gameBoard[i].style.fontWeight = "Bold";
-					}
-				}
+				addClassToCard(i, gameState, gameBoard, "bystanderCard-gameEnded-noOwner", "bystanderCard-gameEnded-cardVisible", "bystanderCard-gameAlive-spymaster-cardVisible", "bystanderCard-gameAlive-spymaster-cardNotVisible", "bystanderCard-gameAlive-notSpymaster");
 				break;
-
-			//##################################################################
 			case "Assassin":
-				if (gameState["hasEnded"]) {
-					if (gameState["cards"][i]["owner"] != "N/A") {
-						gameBoard[i].className = "assassinCard-gameEnded-noOwner";
-					}
-					if (gameState["cards"][i]["visible"]) {
-						gameBoard[i].className = "assassinCard-gameEnded-cardVisible";
-					}
-				} else {
-					// spymaster team
-					if (gameState["teamName"] == "Spymaster") {
-						if (gameState["cards"][i]["visible"]) {
-							gameBoard[i].className = "assassinCard-gameAlive-spymaster-cardVisible";
-						} else {
-							gameBoard[i].className = "assassinCard-gameAlive-spymaster-cardNotVisible";
-						}
-						// not spymaster team
-					} else {
-						gameBoard[i].className = "assassinCard-gameAlive-notSpymaster";
-					}
-				}
+				addClassToCard(i, gameState, gameBoard, "assassinCard-gameEnded-noOwner", "assassinCard-gameEnded-cardVisible", "assassinCard-gameAlive-spymaster-cardVisible", "assassinCard-gameAlive-spymaster-cardNotVisible", "assassinCard-gameAlive-notSpymaster");
 				break;
 		}
-
-		// indicate cannot click if not your turn
 		if (gameState["teamName"] != gameState["turn"] || gameState["cards"][i]["visible"] || gameState["hasEnded"]) {
 			gameBoard[i].style.cursor = "not-allowed";
 		}
 	}
 	console.log("Cards Styled");
 }
+
+
+
+
